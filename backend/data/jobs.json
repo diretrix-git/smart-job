@@ -1,0 +1,37 @@
+[
+  {
+    "title": "Machine Learning Engineer",
+    "company": "TechCorp",
+    "company_url": "https://techcorp.example.com",
+    "description": "Looking for an ML engineer with Python and SQL experience.",
+    "skills": ["Python", "Machine Learning", "SQL"]
+  },
+  {
+    "title": "Full Stack Developer",
+    "company": "Webify",
+    "company_url": "https://webify.example.com",
+    "description": "Need a developer skilled in React, FastAPI, and PostgreSQL.",
+    "skills": ["React", "JavaScript", "FastAPI", "PostgreSQL", "Git"]
+  },
+  {
+    "title": "Marketing Manager",
+    "company": "Growth Inc",
+    "company_url": "https://growthinc.example.com",
+    "description": "Seeking an experienced marketing manager for SEO, SEM, and Content Strategy.",
+    "skills": ["SEO", "Content Marketing", "Digital Marketing", "Social Media"]
+  },
+  {
+    "title": "Financial Analyst",
+    "company": "Capital Bank",
+    "company_url": "https://capitalbank.example.com",
+    "description": "Looking for a Financial Analyst proficient in Excel, Financial Modeling, and Data Analysis.",
+    "skills": ["Excel", "Financial Modeling", "Accounting", "Data Analysis"]
+  },
+  {
+    "title": "Registered Nurse",
+    "company": "City Hospital",
+    "company_url": "https://cityhospital.example.com",
+    "description": "Seeking an RN with ER experience and Patient Care skills.",
+    "skills": ["Patient Care", "Nursing", "CPR", "Emergency Room"]
+  }
+]
