@@ -7,9 +7,4 @@ class CourseBase(BaseModel):
     provider: str
     url: str
 
-class CourseOut(CourseBase):
-    id: int
-    skills: List[SkillOut] = []
 
-    class Config:
-        from_attributes = True

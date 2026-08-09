@@ -18,12 +18,4 @@ def get_job_recommendations(
     """
     return calculate_job_matches(db, current_user)
 
-@router.get("/courses")
-def get_course_recommendations(
-    db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_user),
-):
-    """
-    Returns course recommendations for the user's skill gaps.
-    """
-    return {"message": "Recommendation engine course endpoint stub."}
+

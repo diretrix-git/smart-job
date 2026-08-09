@@ -3,18 +3,13 @@ from typing import List, Optional
 from datetime import datetime
 from app.schemas.skill import SkillOut
 
-class JobSkillCreate(BaseModel):
-    name: str
-    importance: str = "required"
+
 
 class JobBase(BaseModel):
     title: str
     description: str
     company: str
     company_url: Optional[str] = None
-
-class JobCreate(JobBase):
-    skills: List[JobSkillCreate]
 
 class JobSkillOut(BaseModel):
     skill: SkillOut

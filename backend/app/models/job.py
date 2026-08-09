@@ -2,7 +2,6 @@ from datetime import datetime
 from sqlalchemy import Column, Integer, String, Text, DateTime
 from sqlalchemy.orm import relationship
 from app.db.session import Base
-from app.models.skill import JobSkill
 
 class Job(Base):
     __tablename__ = "jobs"
