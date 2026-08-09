@@ -45,7 +45,6 @@ export const resumesAPI = {
 
 export const recommendationsAPI = {
   getJobs: () => api.get('/recommendations/jobs'),
-  getCourses: () => api.get('/recommendations/courses'),
 };
 
 export default api;
