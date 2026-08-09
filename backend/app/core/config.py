@@ -7,6 +7,8 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
     DATABASE_URL: str
+    SKILL_WEIGHT: float = 0.6
+    SEMANTIC_WEIGHT: float = 0.4
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

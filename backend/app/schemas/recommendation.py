@@ -10,7 +10,14 @@ class CourseRecommendation(BaseModel):
 
 class RecommendationBase(BaseModel):
     job_id: int
+    skill_score: float
+    semantic_score: float
+    final_score: float
     match_score: float
+    matched_required_skills: List[str]
+    missing_required_skills: List[str]
+    matched_preferred_skills: List[str]
+    missing_preferred_skills: List[str]
     missing_skills: List[str]
 
 class RecommendationOut(RecommendationBase):

@@ -8,12 +8,17 @@ user_skills = Table(
     Column("skill_id", Integer, ForeignKey("skills.id", ondelete="CASCADE"), primary_key=True)
 )
 
-job_skills = Table(
-    "job_skills",
-    Base.metadata,
-    Column("job_id", Integer, ForeignKey("jobs.id", ondelete="CASCADE"), primary_key=True),
-    Column("skill_id", Integer, ForeignKey("skills.id", ondelete="CASCADE"), primary_key=True)
-)
+from sqlalchemy.orm import relationship
+
+class JobSkill(Base):
+    __tablename__ = "job_skills"
+    
+    job_id = Column(Integer, ForeignKey("jobs.id", ondelete="CASCADE"), primary_key=True)
+    skill_id = Column(Integer, ForeignKey("skills.id", ondelete="CASCADE"), primary_key=True)
+    importance = Column(String, default="required", nullable=False)
+    
+    skill = relationship("Skill")
+    job = relationship("Job", back_populates="job_skills")
 
 course_skills = Table(
     "course_skills",

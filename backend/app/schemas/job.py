@@ -3,6 +3,10 @@ from typing import List, Optional
 from datetime import datetime
 from app.schemas.skill import SkillOut
 
+class JobSkillCreate(BaseModel):
+    name: str
+    importance: str = "required"
+
 class JobBase(BaseModel):
     title: str
     description: str
@@ -10,12 +14,19 @@ class JobBase(BaseModel):
     company_url: Optional[str] = None
 
 class JobCreate(JobBase):
-    skill_names: List[str]
+    skills: List[JobSkillCreate]
+
+class JobSkillOut(BaseModel):
+    skill: SkillOut
+    importance: str
+
+    class Config:
+        from_attributes = True
 
 class JobOut(JobBase):
     id: int
     created_at: datetime
-    skills: List[SkillOut] = []
+    job_skills: List[JobSkillOut] = []
 
     class Config:
         from_attributes = True

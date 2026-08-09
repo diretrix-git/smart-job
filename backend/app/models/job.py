@@ -2,7 +2,7 @@ from datetime import datetime
 from sqlalchemy import Column, Integer, String, Text, DateTime
 from sqlalchemy.orm import relationship
 from app.db.session import Base
-from app.models.skill import job_skills
+from app.models.skill import JobSkill
 
 class Job(Base):
     __tablename__ = "jobs"
@@ -14,5 +14,5 @@ class Job(Base):
     description = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    skills = relationship("Skill", secondary=job_skills, backref="jobs")
+    job_skills = relationship("JobSkill", back_populates="job", cascade="all, delete-orphan")
     recommendations = relationship("Recommendation", back_populates="job", cascade="all, delete-orphan")

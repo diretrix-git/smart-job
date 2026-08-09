@@ -1,13 +1,16 @@
 import json
 import os
 import sys
+import math
+import os
+import sys
 
 # Add parent directory to path so we can import from app
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy.orm import Session
 from app.db.session import engine, Base, SessionLocal
-from app.models.skill import Skill
+from app.models.skill import Skill, JobSkill
 from app.models.job import Job
 from app.models.course import Course
 
@@ -53,9 +56,15 @@ def seed_db():
                 company=item['company'],
                 company_url=item.get('company_url')
             )
-            for skill_name in item['skills']:
+            skills_list = item['skills']
+            req_count = math.ceil(len(skills_list) / 2)
+            for idx, skill_name in enumerate(skills_list):
                 if skill_name in skill_objects:
-                    job.skills.append(skill_objects[skill_name])
+                    # Note: This required/preferred split is auto-generated as a placeholder,
+                    # not curated by domain knowledge. This is a documented limitation of the current dataset.
+                    importance = "required" if idx < req_count else "preferred"
+                    js = JobSkill(skill=skill_objects[skill_name], importance=importance)
+                    job.job_skills.append(js)
             db.add(job)
 
     print("Seeding courses...")
