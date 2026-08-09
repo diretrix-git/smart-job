@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Job Recommendation System — Project Documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ── Reset ─────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ── Palette ───────────────────────────────────────────── */
+:root{
+  --bg-body:#0d1117;
+  --bg-sidebar:#161b22;
+  --bg-card:#161b22;
+  --bg-code:#0d1117;
+  --border:#30363d;
+  --text-primary:#e6edf3;
+  --text-secondary:#8b949e;
+  --text-dim:#484f58;
+  --accent-blue:#58a6ff;
+  --accent-green:#3fb950;
+  --accent-purple:#bc8cff;
+  --accent-orange:#d29922;
+  --accent-red:#f85149;
+  --accent-cyan:#39d2c0;
+  --accent-pink:#f778ba;
+  --sidebar-w:280px;
+}
+
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--bg-body);
+  color:var(--text-primary);
+  line-height:1.7;
+  overflow-x:hidden;
+}
+
+/* ── Sidebar ───────────────────────────────────────────── */
+.sidebar{
+  position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);
+  background:var(--bg-sidebar);border-right:1px solid var(--border);
+  overflow-y:auto;padding:24px 0;z-index:100;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+  transition:transform .3s ease;
+}
+.sidebar-brand{
+  padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:12px;
+}
+.sidebar-brand h2{
+  font-size:15px;font-weight:800;color:var(--accent-blue);letter-spacing:-.3px;
+  line-height:1.3;
+}
+.sidebar-brand span{font-size:11px;color:var(--text-dim);display:block;margin-top:4px}
+.sidebar nav a{
+  display:flex;align-items:baseline;gap:8px;
+  padding:7px 20px;font-size:13px;color:var(--text-secondary);text-decoration:none;
+  border-left:3px solid transparent;transition:all .15s;
+}
+.sidebar nav a:hover,.sidebar nav a.active{
+  color:var(--text-primary);background:rgba(88,166,255,.06);border-left-color:var(--accent-blue);
+}
+.sidebar nav a .num{
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);min-width:22px;
+}
+
+/* ── Mobile toggle ─────────────────────────────────────── */
+.menu-toggle{
+  display:none;position:fixed;top:14px;left:14px;z-index:200;
+  background:var(--bg-sidebar);border:1px solid var(--border);border-radius:8px;
+  color:var(--text-primary);padding:8px 12px;cursor:pointer;font-size:18px;
+}
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .menu-toggle{display:block}
+  .main{margin-left:0!important;padding:24px 16px!important}
+}
+
+/* ── Main ──────────────────────────────────────────────── */
+.main{margin-left:var(--sidebar-w);padding:48px 56px 120px;max-width:960px;}
+
+/* ── Sections ──────────────────────────────────────────── */
+section{margin-bottom:64px}
+section h2{
+  font-size:24px;font-weight:800;margin-bottom:24px;padding-bottom:12px;
+  border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;
+}
+section h2 .badge{
+  font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;
+  background:var(--accent-blue);color:#0d1117;border-radius:6px;padding:2px 8px;
+}
+h3{font-size:18px;font-weight:700;margin:28px 0 12px;color:var(--accent-cyan)}
+h4{font-size:15px;font-weight:600;margin:20px 0 8px;color:var(--accent-purple)}
+p,li{font-size:14.5px;color:var(--text-secondary);line-height:1.75}
+p{margin-bottom:14px}
+ul,ol{padding-left:22px;margin-bottom:14px}
+li{margin-bottom:6px}
+strong{color:var(--text-primary);font-weight:600}
+em{color:var(--accent-orange);font-style:normal}
+a{color:var(--accent-blue);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ── Cards ─────────────────────────────────────────────── */
+.card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:10px;
+  padding:24px;margin-bottom:16px;
+}
+.card.green{border-left:4px solid var(--accent-green)}
+.card.blue{border-left:4px solid var(--accent-blue)}
+.card.purple{border-left:4px solid var(--accent-purple)}
+.card.orange{border-left:4px solid var(--accent-orange)}
+.card.red{border-left:4px solid var(--accent-red)}
+.card.cyan{border-left:4px solid var(--accent-cyan)}
+.card.pink{border-left:4px solid var(--accent-pink)}
+.card-title{font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+
+/* ── Code blocks ───────────────────────────────────────── */
+pre{
+  background:var(--bg-code);border:1px solid var(--border);border-radius:8px;
+  padding:20px;overflow-x:auto;margin:14px 0 18px;
+  font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.65;
+  color:#c9d1d9;
+}
+code{font-family:'JetBrains Mono',monospace;font-size:12.5px}
+p code,li code{
+  background:rgba(110,118,129,.2);padding:2px 6px;border-radius:4px;color:var(--accent-cyan);font-size:13px;
+}
+
+/* ── Tables ────────────────────────────────────────────── */
+table{
+  width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:13.5px;
+}
+th{
+  background:rgba(88,166,255,.08);text-align:left;padding:10px 14px;font-weight:700;
+  border:1px solid var(--border);color:var(--accent-blue);font-size:13px;
+}
+td{
+  padding:10px 14px;border:1px solid var(--border);color:var(--text-secondary);
+  vertical-align:top;
+}
+tr:nth-child(even) td{background:rgba(255,255,255,.015)}
+
+/* ── Diagram ───────────────────────────────────────────── */
+.arch-diagram{
+  display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;
+  margin:28px 0;
+}
+.arch-box{
+  padding:18px 22px;border-radius:10px;text-align:center;
+  font-weight:700;font-size:13px;min-width:150px;
+}
+.arch-arrow{font-size:28px;color:var(--text-dim);padding:0 6px}
+.arch-frontend{background:rgba(63,185,80,.12);border:1px solid var(--accent-green);color:var(--accent-green)}
+.arch-backend{background:rgba(88,166,255,.12);border:1px solid var(--accent-blue);color:var(--accent-blue)}
+.arch-db{background:rgba(188,140,255,.12);border:1px solid var(--accent-purple);color:var(--accent-purple)}
+.arch-nlp{background:rgba(215,153,34,.12);border:1px solid var(--accent-orange);color:var(--accent-orange)}
+.arch-sub{font-weight:400;font-size:11px;color:var(--text-dim);display:block;margin-top:4px}
+
+/* ── Pitch box ─────────────────────────────────────────── */
+.pitch-box{
+  background:linear-gradient(135deg,rgba(88,166,255,.08),rgba(188,140,255,.08));
+  border:1px solid var(--accent-blue);border-radius:12px;padding:28px;margin:18px 0;
+  font-size:15px;color:var(--text-primary);line-height:1.85;font-style:italic;
+}
+
+/* ── Q&A accordion ─────────────────────────────────────── */
+details{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:8px;
+  margin-bottom:8px;
+}
+details[open]{border-color:var(--accent-blue)}
+summary{
+  cursor:pointer;padding:14px 18px;font-weight:600;font-size:14px;
+  color:var(--text-primary);list-style:none;display:flex;align-items:center;gap:10px;
+}
+summary::before{content:'▶';font-size:10px;color:var(--accent-blue);transition:transform .2s}
+details[open] summary::before{transform:rotate(90deg)}
+summary::-webkit-details-marker{display:none}
+details .answer{padding:0 18px 18px;font-size:14px;color:var(--text-secondary);line-height:1.75}
+
+/* ── Flow steps ────────────────────────────────────────── */
+.flow{counter-reset:step}
+.flow-step{
+  position:relative;padding:16px 20px 16px 56px;
+  background:var(--bg-card);border:1px solid var(--border);border-radius:8px;
+  margin-bottom:8px;
+}
+.flow-step::before{
+  counter-increment:step;content:counter(step);
+  position:absolute;left:16px;top:16px;
+  width:28px;height:28px;border-radius:50%;
+  background:var(--accent-blue);color:#0d1117;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;
+}
+
+/* ── ER Diagram (CSS-drawn) ────────────────────────────── */
+.er-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:18px 0;
+}
+.er-table{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:8px;overflow:hidden;
+}
+.er-table-name{
+  padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;
+  background:rgba(88,166,255,.1);color:var(--accent-blue);border-bottom:1px solid var(--border);
+}
+.er-table ul{list-style:none;padding:10px 14px;margin:0}
+.er-table li{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-secondary);padding:2px 0}
+.er-table li .pk{color:var(--accent-orange)}
+.er-table li .fk{color:var(--accent-pink)}
+.er-table li .col{color:var(--text-primary)}
+
+/* ── Team member cards ──────────────────────────────────── */
+.member-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:10px;
+  padding:24px;margin-bottom:16px;position:relative;overflow:hidden;
+}
+.member-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+}
+.member-card.lead::before{background:linear-gradient(90deg,var(--accent-blue),var(--accent-cyan))}
+.member-card.support::before{background:linear-gradient(90deg,var(--accent-purple),var(--accent-pink))}
+.member-name{
+  font-size:18px;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:10px;
+}
+.role-tag{
+  font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;
+  text-transform:uppercase;letter-spacing:.5px;
+}
+.role-tag.lead{background:rgba(88,166,255,.15);color:var(--accent-blue)}
+.role-tag.support{background:rgba(188,140,255,.15);color:var(--accent-purple)}
+.member-role{font-size:13px;color:var(--accent-cyan);font-weight:600;margin-bottom:10px}
+.member-card h4{margin-top:14px;margin-bottom:6px;font-size:13px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px}
+.member-card ul{margin-bottom:8px}
+.member-card li{font-size:13.5px}
+.present-tag{
+  display:inline-block;font-size:11px;font-weight:600;padding:3px 10px;border-radius:4px;
+  margin-top:8px;background:rgba(63,185,80,.12);color:var(--accent-green);border:1px solid rgba(63,185,80,.25);
+}
+
+/* ── Syntax highlighting (minimal) ─────────────────────── */
+.kw{color:#ff7b72} .fn{color:#d2a8ff} .str{color:#a5d6ff}
+.cm{color:#8b949e;font-style:italic} .num{color:#79c0ff} .op{color:#ff7b72}
+.dec{color:#ffa657} .cls{color:#ffa657} .bi{color:#79c0ff}
+</style>
+</head>
+<body>
+
+<!-- Mobile Menu Toggle -->
+<button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">☰</button>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  SIDEBAR                                               -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <h2>Smart Job<br>Recommendation System</h2>
+    <span>Project Documentation v1.0</span>
+  </div>
+  <nav>
+    <a href="#why"><span class="num">01</span> Why This Project</a>
+    <a href="#cheatsheet"><span class="num">02</span> Presentation Cheat Sheet</a>
+    <a href="#team"><span class="num">★</span> Team Roles</a>
+    <a href="#architecture"><span class="num">03</span> System Architecture</a>
+    <a href="#techstack"><span class="num">04</span> Tech Stack &amp; Why</a>
+    <a href="#schema"><span class="num">05</span> Database Schema</a>
+    <a href="#parsing-flow"><span class="num">06</span> Resume Parsing Flow</a>
+    <a href="#nlp-walkthrough"><span class="num">07</span> NLP Skill Extraction</a>
+    <a href="#rec-walkthrough"><span class="num">08</span> Recommendation Engine</a>
+    <a href="#codemap"><span class="num">09</span> Code Map</a>
+    <a href="#limitations"><span class="num">10</span> Known Limitations</a>
+    <a href="#improvements"><span class="num">11</span> Possible Improvements</a>
+    <a href="#future"><span class="num">12</span> Future Add-ons</a>
+    <a href="#qa"><span class="num">13</span> Professor Q&amp;A</a>
+    <div style="margin:20px 0 10px 0; border-top:1px solid var(--border); padding-top:15px; font-size:12px; font-weight:800; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; margin-left:16px;">Team Deep Dives</div>
+    <a href="#deep-dive-krish"><span class="num">★</span> Krish (NLP/Backend)</a>
+    <a href="#deep-dive-shishir"><span class="num">★</span> Shishir (Auth/DB)</a>
+    <a href="#deep-dive-prajjwal"><span class="num">★</span> Prajjwal (React UI)</a>
+    <a href="#deep-dive-sahil"><span class="num">★</span> Sahil (API/State)</a>
+  </nav>
+</aside>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  MAIN CONTENT                                          -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<main class="main">
+
+<!-- ─── 1. WHY THIS PROJECT ────────────────────────────── -->
+<section id="why">
+  <h2><span class="badge">01</span> Why This Project</h2>
+  <p>
+    This project was chosen specifically for our Python class because it demonstrates <strong>real algorithmic depth</strong>
+    rather than a long list of shallow CRUD features. An earlier proposal was flagged by the professor
+    as too feature-heavy with too little substance — essentially just database reads and writes with no meaningful computation.
+  </p>
+  <p>
+    The Smart Job Recommendation System addresses that feedback directly. At its core are two non-trivial algorithms:
+  </p>
+  <ul>
+    <li><strong>Cosine Similarity</strong> — a vector-math-based scoring algorithm that computes how closely a user's skill set matches each job's requirements.</li>
+    <li><strong>NLP Skill Extraction via spaCy PhraseMatcher</strong> — a natural language processing pipeline that reads a raw PDF resume and automatically identifies technical skills from unstructured text.</li>
+  </ul>
+  <p>
+    These two pieces turn the project from a basic to-do-list-style CRUD app into something that involves genuine
+    <em>data science</em>, <em>linear algebra</em>, and <em>NLP</em> — exactly the kind of depth that matters in a Python course.
+  </p>
+</section>
+
+<!-- ─── 2. CHEAT SHEET ─────────────────────────────────── -->
+<section id="cheatsheet">
+  <h2><span class="badge">02</span> Presentation Cheat Sheet</h2>
+
+  <h3>🎤 30-Second Spoken Pitch</h3>
+  <div class="pitch-box">
+    "Our project is a Smart Job Recommendation System. A user uploads their resume as a PDF. The backend
+    uses PyMuPDF to extract text, then spaCy's PhraseMatcher runs NLP skill extraction against a taxonomy
+    of skills stored in our database. Once we know the user's skills, we build binary skill vectors for
+    each job and compute cosine similarity to produce a match score from 0 to 1. We also detect missing
+    skills and recommend courses to fill those gaps. The whole system is built on a FastAPI backend with
+    PostgreSQL, a React + Tailwind frontend, and is covered by 16 passing unit tests."
+  </div>
+
+  <h3>📋 Quick-Facts Table</h3>
+  <table>
+    <tr><th>Attribute</th><th>Value</th></tr>
+    <tr><td>Match Score Range</td><td><code>0.0</code> (no overlap) → <code>1.0</code> (perfect match)</td></tr>
+    <tr><td>Skill Extraction Method</td><td>spaCy <code>PhraseMatcher</code> with <code>attr="LOWER"</code> (case-insensitive)</td></tr>
+    <tr><td>Data Source (Jobs/Courses)</td><td>Seeded from static JSON files (<code>jobs.json</code>, <code>courses.json</code>) — not live scraping</td></tr>
+    <tr><td>Authentication Method</td><td>JWT tokens (via <code>python-jose</code>) + bcrypt password hashing</td></tr>
+    <tr><td>Test Coverage</td><td>16 passing unit tests across 3 test files (recommender, NLP, API integration)</td></tr>
+    <tr><td>Python Version</td><td>3.10+</td></tr>
+    <tr><td>Similarity Algorithm</td><td>Cosine similarity over binary presence vectors</td></tr>
+  </table>
+</section>
+
+<!-- ─── TEAM ROLES ──────────────────────────────────────── -->
+<section id="team">
+  <h2><span class="badge" style="background:var(--accent-green)">★</span> Team Roles &amp; Presentation Plan</h2>
+  <p>Below is how the project responsibility is split across the four team members, along with which sections each person presents tomorrow.</p>
+
+  <!-- Krish -->
+  <div class="member-card lead">
+    <div class="member-name">Krish <span class="role-tag lead">Lead Developer</span></div>
+    <div class="member-role">Backend Architecture · NLP Pipeline · Recommendation Engine</div>
+    <h4>🔧 Built</h4>
+    <ul>
+      <li>Designed and implemented the <strong>full backend architecture</strong> — FastAPI app, routing, dependency injection, CORS setup.</li>
+      <li>Built the <strong>NLP skill extraction pipeline</strong> — spaCy PhraseMatcher with <code>attr="LOWER"</code> for case-insensitive resume parsing (<code>nlp_extractor.py</code>).</li>
+      <li>Built the <strong>recommendation engine</strong> — cosine similarity algorithm, binary skill vectors, missing skill detection, course recommendations (<code>recommender.py</code>).</li>
+      <li>Designed the <strong>database schema</strong> — all models, three many-to-many join tables, foreign key relationships.</li>
+      <li>Wrote the <strong>resume upload endpoint</strong> — PDF parsing → NLP extraction → skill attachment flow (<code>resumes.py</code>).</li>
+      <li>Set up <strong>GitHub repository</strong>, project structure, and deployment configuration.</li>
+    </ul>
+    <h4>🎤 Presents</h4>
+    <ul>
+      <li><strong>Section 1</strong> — Why This Project (algorithmic depth justification)</li>
+      <li><strong>Section 7</strong> — NLP Skill Extraction code walkthrough</li>
+      <li><strong>Section 8</strong> — Recommendation Engine code walkthrough</li>
+      <li><strong>Section 10 &amp; 11</strong> — Known Limitations &amp; Improvements</li>
+      <li><strong>Section 13</strong> — Handles Professor Q&amp;A (technical questions)</li>
+    </ul>
+    <span class="present-tag">⏱ ~8-10 minutes presentation time</span>
+    <div style="margin-top: 15px;">
+      <a href="#deep-dive-krish" style="display:inline-block; background:var(--accent-blue); color:#0d1117; padding:6px 14px; border-radius:6px; font-weight:700; font-size:13px; text-decoration:none;">🔍 Open Krish's Deep Dive &rarr;</a>
+    </div>
+  </div>
+
+  <!-- Shishir -->
+  <div class="member-card lead">
+    <div class="member-name">Shishir <span class="role-tag lead">Co-Lead Developer</span></div>
+    <div class="member-role">Authentication · Database Layer · API Integration · Testing</div>
+    <h4>🔧 Built</h4>
+    <ul>
+      <li>Implemented <strong>JWT authentication system</strong> — token creation, password hashing with bcrypt, login/register endpoints (<code>security.py</code>, <code>auth.py</code>).</li>
+      <li>Set up <strong>SQLAlchemy ORM layer</strong> — database session management, model relationships, Alembic migrations (<code>session.py</code>).</li>
+      <li>Built the <strong>CRUD operations</strong> for user management — create, read, update with duplicate checks (<code>crud/user.py</code>).</li>
+      <li>Wrote all <strong>Pydantic schemas</strong> for request/response validation (<code>schemas/</code> directory).</li>
+      <li>Wrote <strong>16 unit tests</strong> — recommender tests, NLP tests, and API integration test (<code>tests/</code> directory).</li>
+      <li>Created the <strong>data seed script</strong> and curated the JSON datasets (<code>data/seed.py</code>, <code>jobs.json</code>, <code>courses.json</code>, <code>skills.json</code>).</li>
+    </ul>
+    <h4>🎤 Presents</h4>
+    <ul>
+      <li><strong>Section 3</strong> — System Architecture (three-tier diagram)</li>
+      <li><strong>Section 5</strong> — Database Schema (tables, join tables, why relational)</li>
+      <li><strong>Section 4</strong> — Tech Stack (FastAPI, SQLAlchemy, JWT portions)</li>
+      <li><strong>Section 6</strong> — Resume Parsing Flow (step-by-step)</li>
+    </ul>
+    <span class="present-tag">⏱ ~5-7 minutes presentation time</span>
+    <div style="margin-top: 15px;">
+      <a href="#deep-dive-shishir" style="display:inline-block; background:var(--accent-blue); color:#0d1117; padding:6px 14px; border-radius:6px; font-weight:700; font-size:13px; text-decoration:none;">🔍 Open Shishir's Deep Dive &rarr;</a>
+    </div>
+  </div>
+
+  <!-- Prajjwal -->
+  <div class="member-card support">
+    <div class="member-name">Prajjwal <span class="role-tag support">Frontend Developer</span></div>
+    <div class="member-role">React UI · Pages · Routing</div>
+    <h4>🔧 Built</h4>
+    <ul>
+      <li>Built the <strong>React frontend</strong> — page components for Dashboard, Login, Register, Profile (<code>frontend/src/pages/</code>).</li>
+      <li>Set up <strong>React Router</strong> for client-side navigation (<code>App.jsx</code>).</li>
+      <li>Styled the UI with <strong>TailwindCSS</strong> — responsive layouts, form styling, card components.</li>
+    </ul>
+    <h4>🎤 Presents</h4>
+    <ul>
+      <li><strong>Section 4 (partial)</strong> — Tech Stack: React, Vite, TailwindCSS choices and why</li>
+      <li><strong>Section 12</strong> — Future Add-ons / Phase 2 features</li>
+    </ul>
+    <span class="present-tag">⏱ ~2-3 minutes presentation time</span>
+    <div style="margin-top: 15px;">
+      <a href="#deep-dive-prajjwal" style="display:inline-block; background:var(--accent-blue); color:#0d1117; padding:6px 14px; border-radius:6px; font-weight:700; font-size:13px; text-decoration:none;">🔍 Open Prajjwal's Deep Dive &rarr;</a>
+    </div>
+  </div>
+
+  <!-- Sahil -->
+  <div class="member-card support">
+    <div class="member-name">Sahil <span class="role-tag support">Frontend Developer</span></div>
+    <div class="member-role">API Integration · Auth Context · State Management</div>
+    <h4>🔧 Built</h4>
+    <ul>
+      <li>Built the <strong>Axios API service layer</strong> — configured base URL, auth headers, request interceptors (<code>services/api.js</code>).</li>
+      <li>Implemented the <strong>AuthContext</strong> — React context for global JWT token management and login state (<code>context/AuthContext.jsx</code>).</li>
+      <li>Connected frontend pages to backend API — form submissions, data fetching, error handling.</li>
+    </ul>
+    <h4>🎤 Presents</h4>
+    <ul>
+      <li><strong>Section 2</strong> — Reads the 30-second pitch &amp; quick-facts table</li>
+      <li><strong>Section 9</strong> — Code Map (walks through the file table)</li>
+    </ul>
+    </ul>
+    <span class="present-tag">⏱ ~2-3 minutes presentation time</span>
+    <div style="margin-top: 15px;">
+      <a href="#deep-dive-sahil" style="display:inline-block; background:var(--accent-blue); color:#0d1117; padding:6px 14px; border-radius:6px; font-weight:700; font-size:13px; text-decoration:none;">🔍 Open Sahil's Deep Dive &rarr;</a>
+    </div>
+  </div>
+
+  <!-- Presentation Order -->
+  <h3>📋 Suggested Presentation Order</h3>
+  <table>
+    <tr><th>#</th><th>Section</th><th>Presenter</th><th>Time</th></tr>
+    <tr><td>1</td><td>Why This Project</td><td><strong>Krish</strong></td><td>~1 min</td></tr>
+    <tr><td>2</td><td>30-Second Pitch + Quick Facts</td><td><strong>Sahil</strong></td><td>~1 min</td></tr>
+    <tr><td>3</td><td>System Architecture</td><td><strong>Shishir</strong></td><td>~2 min</td></tr>
+    <tr><td>4</td><td>Tech Stack — Backend + NLP</td><td><strong>Shishir</strong></td><td>~2 min</td></tr>
+    <tr><td>5</td><td>Tech Stack — Frontend</td><td><strong>Prajjwal</strong></td><td>~1 min</td></tr>
+    <tr><td>6</td><td>Database Schema</td><td><strong>Shishir</strong></td><td>~2 min</td></tr>
+    <tr><td>7</td><td>Resume Parsing Flow</td><td><strong>Shishir</strong></td><td>~1 min</td></tr>
+    <tr><td>8</td><td>NLP Skill Extraction Walkthrough</td><td><strong>Krish</strong></td><td>~3 min</td></tr>
+    <tr><td>9</td><td>Recommendation Engine Walkthrough</td><td><strong>Krish</strong></td><td>~3 min</td></tr>
+    <tr><td>10</td><td>Code Map</td><td><strong>Sahil</strong></td><td>~1 min</td></tr>
+    <tr><td>11</td><td>Limitations + Improvements</td><td><strong>Krish</strong></td><td>~2 min</td></tr>
+    <tr><td>12</td><td>Future Add-ons</td><td><strong>Prajjwal</strong></td><td>~1 min</td></tr>
+    <tr><td>13</td><td>Professor Q&amp;A</td><td><strong>Krish + Shishir</strong></td><td>~3-5 min</td></tr>
+  </table>
+  <p style="margin-top:16px;color:var(--accent-green)"><strong>Total estimated time: ~20-25 minutes</strong></p>
+</section>
+
+<!-- ─── 3. ARCHITECTURE ────────────────────────────────── -->
+<section id="architecture">
+  <h2><span class="badge">03</span> System Architecture</h2>
+  <p>The system follows a clean <strong>three-tier architecture</strong> with a dedicated parsing/NLP layer that the backend calls into:</p>
+
+  <div class="arch-diagram">
+    <div class="arch-box arch-frontend">
+      React + Tailwind<br>Frontend
+      <span class="arch-sub">Vite dev server · Axios HTTP client</span>
+    </div>
+    <span class="arch-arrow">→</span>
+    <div class="arch-box arch-backend">
+      FastAPI<br>Backend
+      <span class="arch-sub">SQLAlchemy ORM · Pydantic schemas</span>
+    </div>
+    <span class="arch-arrow">→</span>
+    <div class="arch-box arch-db">
+      PostgreSQL<br>Database
+      <span class="arch-sub">8 tables · Alembic migrations</span>
+    </div>
+  </div>
+  <div class="arch-diagram" style="margin-top:8px">
+    <div class="arch-box arch-nlp">
+      Parsing &amp; NLP Layer
+      <span class="arch-sub">PyMuPDF (PDF→text) · spaCy PhraseMatcher (text→skills) · scikit-learn cosine sim</span>
+    </div>
+    <span class="arch-arrow" style="transform:rotate(180deg)">→</span>
+    <span style="font-size:12px;color:var(--text-dim)">called by the backend</span>
+  </div>
+
+  <h3>Request Flow</h3>
+  <p>
+    <strong>Frontend</strong> sends an HTTP request (e.g. <code>POST /api/v1/resumes/upload</code>) via Axios →
+    <strong>FastAPI</strong> receives the request, validates it with Pydantic, authenticates via JWT →
+    <strong>Service layer</strong> (NLP / recommender) does the computation →
+    <strong>SQLAlchemy</strong> persists results to <strong>PostgreSQL</strong> →
+    <strong>Response</strong> flows back as JSON.
+  </p>
+</section>
+
+<!-- ─── 4. TECH STACK ──────────────────────────────────── -->
+<section id="techstack">
+  <h2><span class="badge">04</span> Tech Stack &amp; Why Each Choice Was Made</h2>
+
+  <div class="card blue">
+    <div class="card-title">⚡ FastAPI <span style="font-weight:400;color:var(--text-dim)">— Web Framework</span></div>
+    <p><strong>What it does:</strong> Serves our REST API endpoints (<code>/auth</code>, <code>/resumes</code>, <code>/recommendations</code>). Handles request routing, validation, dependency injection, and auto-generates OpenAPI docs.</p>
+    <p><strong>Chosen over:</strong> <em>Flask</em> — Flask is synchronous, has no built-in validation, and requires manual OpenAPI setup. <em>Django</em> — Django bundles a full ORM, admin panel, and template engine we don't need; it's too heavy for a pure API project. FastAPI is async-capable, has native Pydantic validation, and auto-generates Swagger docs at <code>/docs</code>.</p>
+  </div>
+
+  <div class="card purple">
+    <div class="card-title">🗄️ SQLAlchemy + PostgreSQL <span style="font-weight:400;color:var(--text-dim)">— ORM + Database</span></div>
+    <p><strong>What it does:</strong> SQLAlchemy lets us define database tables as Python classes (models) and query them with Python instead of raw SQL. PostgreSQL is the production-grade relational database storing all our data.</p>
+    <p><strong>Chosen over:</strong> <em>Raw SQL queries</em> — vulnerable to SQL injection, harder to maintain. <em>SQLite</em> — fine for prototyping but doesn't support concurrent connections well, which matters when multiple users upload resumes at the same time. <em>MongoDB</em> — our data is highly relational (skills linked to users, jobs, AND courses via join tables), so a relational database is the natural fit.</p>
+  </div>
+
+  <div class="card orange">
+    <div class="card-title">🧠 spaCy PhraseMatcher <span style="font-weight:400;color:var(--text-dim)">— NLP Skill Extraction</span></div>
+    <p><strong>What it does:</strong> Scans resume text and matches skill names from our database taxonomy. Uses <code>attr="LOWER"</code> for case-insensitive matching.</p>
+    <p><strong>Chosen over:</strong> <em>spaCy's default Named Entity Recognition (NER)</em> — spaCy's built-in NER model is trained to recognize generic entities like people, organizations, and locations. It does <strong>not</strong> recognize technical skill names (like "Python", "Docker", "React") out of the box. Training a custom NER model would require thousands of labeled examples. Instead, PhraseMatcher against a known skill taxonomy gives us precise, guaranteed matches without any training data. Also chosen over <em>NLTK</em> — NLTK is older, slower, and primarily designed for academic research, not production NLP pipelines.</p>
+  </div>
+
+  <div class="card cyan">
+    <div class="card-title">📐 Cosine Similarity <span style="font-weight:400;color:var(--text-dim)">— Matching Algorithm</span></div>
+    <p><strong>What it does:</strong> Measures the angle between two binary skill vectors (one for the user, one for the job) to produce a match score from 0.0 to 1.0.</p>
+    <p><strong>Chosen over:</strong> <em>Jaccard Index</em> — Jaccard only measures set overlap; cosine similarity is a more standard measure in information retrieval and is direction-aware. <em>A trained ML classifier</em> — would require labeled training data (user → job match/no-match) that we don't have. Cosine similarity is deterministic, explainable, and works perfectly with the structured skill data we have.</p>
+  </div>
+
+  <div class="card red">
+    <div class="card-title">📄 PyMuPDF <span style="font-weight:400;color:var(--text-dim)">— PDF Parsing</span></div>
+    <p><strong>What it does:</strong> Opens an uploaded PDF resume and extracts all text content into a plain string for NLP processing.</p>
+    <p><strong>Chosen over:</strong> <em>PyPDF2</em> — PyMuPDF is significantly faster and produces cleaner text extraction, especially for multi-column layouts and complex formatting. PyPDF2 frequently garbles text or misses content.</p>
+  </div>
+
+  <div class="card green">
+    <div class="card-title">📦 Static Seeded Datasets <span style="font-weight:400;color:var(--text-dim)">— Data Source</span></div>
+    <p><strong>What it does:</strong> Jobs, courses, and skills are loaded from curated JSON files (<code>jobs.json</code>, <code>courses.json</code>, <code>skills.json</code>) via a seed script into PostgreSQL.</p>
+    <p><strong>Chosen over:</strong> <em>Live web scraping</em> — scraping job boards like Indeed or LinkedIn violates their Terms of Service, is fragile (breaks when HTML changes), and introduces network dependency. Static seeded data gives us a consistent, reproducible dataset for demos and testing.</p>
+  </div>
+
+  <div class="card pink">
+    <div class="card-title">🔒 JWT + bcrypt <span style="font-weight:400;color:var(--text-dim)">— Authentication</span></div>
+    <p><strong>What it does:</strong> <code>bcrypt</code> hashes passwords before storing them (one-way, salt-based). <code>python-jose</code> generates JWT tokens so users can stay authenticated across requests without re-sending credentials.</p>
+    <p><strong>Chosen over:</strong> <em>Session-based auth</em> — sessions require server-side storage and don't work cleanly with a separate frontend SPA. JWT is stateless — the token itself contains the user ID, so the backend doesn't need to look up a session store on every request.</p>
+  </div>
+</section>
+
+<!-- ─── 5. DATABASE SCHEMA ─────────────────────────────── -->
+<section id="schema">
+  <h2><span class="badge">05</span> Database Schema</h2>
+  <p>The database has <strong>5 entity tables</strong> and <strong>3 many-to-many join tables</strong>. All schema details below match the actual model files in the repo.</p>
+
+  <div class="er-grid">
+    <!-- users -->
+    <div class="er-table">
+      <div class="er-table-name">users</div>
+      <ul>
+        <li><span class="pk">PK</span> <span class="col">id</span> Integer</li>
+        <li><span class="col">username</span> String, unique</li>
+        <li><span class="col">email</span> String, unique</li>
+        <li><span class="col">password_hash</span> String</li>
+        <li><span class="col">role</span> String (default "user")</li>
+        <li><span class="col">created_at</span> DateTime</li>
+      </ul>
+    </div>
+    <!-- skills -->
+    <div class="er-table">
+      <div class="er-table-name">skills</div>
+      <ul>
+        <li><span class="pk">PK</span> <span class="col">id</span> Integer</li>
+        <li><span class="col">name</span> String, unique</li>
+        <li><span class="col">category</span> String, nullable</li>
+      </ul>
+    </div>
+    <!-- jobs -->
+    <div class="er-table">
+      <div class="er-table-name">jobs</div>
+      <ul>
+        <li><span class="pk">PK</span> <span class="col">id</span> Integer</li>
+        <li><span class="col">title</span> String</li>
+        <li><span class="col">company</span> String</li>
+        <li><span class="col">company_url</span> String, nullable</li>
+        <li><span class="col">description</span> Text</li>
+        <li><span class="col">created_at</span> DateTime</li>
+      </ul>
+    </div>
+    <!-- resumes -->
+    <div class="er-table">
+      <div class="er-table-name">resumes</div>
+      <ul>
+        <li><span class="pk">PK</span> <span class="col">id</span> Integer</li>
+        <li><span class="fk">FK</span> <span class="col">user_id</span> → users.id</li>
+        <li><span class="col">raw_text</span> Text</li>
+        <li><span class="col">uploaded_at</span> DateTime</li>
+      </ul>
+    </div>
+    <!-- courses -->
+    <div class="er-table">
+      <div class="er-table-name">courses</div>
+      <ul>
+        <li><span class="pk">PK</span> <span class="col">id</span> Integer</li>
+        <li><span class="col">title</span> String</li>
+        <li><span class="col">provider</span> String</li>
+        <li><span class="col">url</span> String</li>
+      </ul>
+    </div>
+    <!-- recommendations -->
+    <div class="er-table">
+      <div class="er-table-name">recommendations</div>
+      <ul>
+        <li><span class="pk">PK</span> <span class="col">id</span> Integer</li>
+        <li><span class="fk">FK</span> <span class="col">user_id</span> → users.id</li>
+        <li><span class="fk">FK</span> <span class="col">job_id</span> → jobs.id</li>
+        <li><span class="col">match_score</span> Float</li>
+        <li><span class="col">missing_skills</span> JSON</li>
+        <li><span class="col">created_at</span> DateTime</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Join Tables (Many-to-Many)</h3>
+  <div class="er-grid">
+    <div class="er-table">
+      <div class="er-table-name">user_skills</div>
+      <ul>
+        <li><span class="fk">FK</span> <span class="col">user_id</span> → users.id</li>
+        <li><span class="fk">FK</span> <span class="col">skill_id</span> → skills.id</li>
+      </ul>
+    </div>
+    <div class="er-table">
+      <div class="er-table-name">job_skills</div>
+      <ul>
+        <li><span class="fk">FK</span> <span class="col">job_id</span> → jobs.id</li>
+        <li><span class="fk">FK</span> <span class="col">skill_id</span> → skills.id</li>
+      </ul>
+    </div>
+    <div class="er-table">
+      <div class="er-table-name">course_skills</div>
+      <ul>
+        <li><span class="fk">FK</span> <span class="col">course_id</span> → courses.id</li>
+        <li><span class="fk">FK</span> <span class="col">skill_id</span> → skills.id</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Why Relational (Foreign Keys) Instead of JSON Arrays?</h3>
+  <p>
+    Storing skills as a JSON array (e.g. <code>["Python", "SQL", "Docker"]</code>) inside the user or job row would be simpler to write, but creates serious problems:
+  </p>
+  <ul>
+    <li><strong>No referential integrity</strong> — you could misspell "Pythn" and the database wouldn't catch it. With foreign keys, every skill reference must point to a real skill row.</li>
+    <li><strong>No efficient querying</strong> — "find all users who know Python" would require scanning every row and parsing JSON. With a join table, it's a simple indexed query.</li>
+    <li><strong>No shared vocabulary</strong> — the same skill can be linked to users, jobs, AND courses via the three join tables. A JSON array on each table would duplicate skill names with no shared identity.</li>
+    <li><strong>No set operations</strong> — computing "missing skills" (job_skills − user_skills) is a native set difference on IDs, not a string-parsing problem.</li>
+  </ul>
+</section>
+
+<!-- ─── 6. RESUME PARSING FLOW ─────────────────────────── -->
+<section id="parsing-flow">
+  <h2><span class="badge">06</span> Resume Parsing Flow</h2>
+  <p>When a user uploads their resume PDF, here's exactly what happens step by step:</p>
+  <div class="flow">
+    <div class="flow-step"><strong>User uploads a PDF</strong> — The React frontend sends the file via <code>POST /api/v1/resumes/upload</code> as multipart form data. FastAPI validates it's a <code>.pdf</code> file.</div>
+    <div class="flow-step"><strong>PyMuPDF extracts raw text</strong> — <code>parse_pdf_from_bytes()</code> opens the PDF binary stream, iterates through every page, concatenates the text, then cleans up excessive whitespace with a regex (<code>re.sub(r'\s+', ' ', ...)</code>).</div>
+    <div class="flow-step"><strong>Skill matcher is loaded</strong> — <code>load_skill_matcher(db)</code> queries ALL skills from the database, creates a spaCy <code>PhraseMatcher</code> with <code>attr="LOWER"</code>, and adds each skill name as a pattern keyed by its database ID.</div>
+    <div class="flow-step"><strong>spaCy PhraseMatcher scans the text</strong> — <code>extract_skills_from_text()</code> runs the cleaned text through spaCy's NLP pipeline, then runs the matcher. Each match returns a <code>(match_id, start, end)</code> tuple. The match IDs are resolved back to skill database IDs.</div>
+    <div class="flow-step"><strong>Skills are attached to the user</strong> — The user's existing skills are cleared (<code>current_user.skills.clear()</code>), and the newly detected skills are appended via the <code>user_skills</code> many-to-many join table.</div>
+    <div class="flow-step"><strong>Response returned</strong> — The resume record (with <code>raw_text</code> and <code>uploaded_at</code>) is committed to the database and returned as JSON. The user's skill profile is now updated and ready for job matching.</div>
+  </div>
+</section>
+
+<!-- ─── 7. NLP SKILL EXTRACTION — CODE WALKTHROUGH ─────── -->
+<section id="nlp-walkthrough">
+  <h2><span class="badge">07</span> NLP Skill Extraction — Code Walkthrough</h2>
+  <p>This is the actual, unmodified code from <code>backend/app/services/nlp_extractor.py</code>:</p>
+
+  <h3><code>load_skill_matcher()</code></h3>
+<pre><span class="kw">def</span> <span class="fn">load_skill_matcher</span>(db: Session) -> PhraseMatcher:
+    <span class="str">"""
+    Loads all skills from the DB into a spaCy PhraseMatcher.
+    """</span>
+    matcher = PhraseMatcher(nlp.vocab, attr=<span class="str">"LOWER"</span>)
+
+    skills = db.query(Skill).all()
+
+    <span class="kw">for</span> skill <span class="kw">in</span> skills:
+        pattern = nlp.make_doc(skill.name)
+        <span class="cm"># Using the skill ID as the match_id string</span>
+        matcher.add(<span class="bi">str</span>(skill.id), [pattern])
+
+    <span class="kw">return</span> matcher</pre>
+
+  <h4>How it works:</h4>
+  <ul>
+    <li><strong><code>PhraseMatcher(nlp.vocab, attr="LOWER")</code></strong> — The critical piece. By passing <code>attr="LOWER"</code>, the matcher compares the <em>lowercased</em> form of every token. This means "Python", "python", "PYTHON" all match the same pattern. Without this, matching would be case-sensitive and miss most real-world resume text.</li>
+    <li><strong><code>nlp.make_doc(skill.name)</code></strong> — Converts each skill name string (e.g. "Machine Learning") into a spaCy <code>Doc</code> object that the PhraseMatcher can use as a pattern.</li>
+    <li><strong><code>matcher.add(str(skill.id), [pattern])</code></strong> — Registers each pattern with the skill's database ID as its label, so when we get a match we can directly look up which skill was found.</li>
+  </ul>
+
+  <h3><code>extract_skills_from_text()</code></h3>
+<pre><span class="kw">def</span> <span class="fn">extract_skills_from_text</span>(text: <span class="bi">str</span>, matcher: PhraseMatcher) -> List[<span class="bi">int</span>]:
+    <span class="str">"""
+    Given a raw text and a populated PhraseMatcher,
+    returns a unique list of matched skill IDs.
+    """</span>
+    doc = nlp(text)
+    matches = matcher(doc)
+
+    <span class="cm"># matches returns a list of tuples: (match_id, start, end)</span>
+    skill_ids = <span class="bi">set</span>()
+    <span class="kw">for</span> match_id, start, end <span class="kw">in</span> matches:
+        string_id = nlp.vocab.strings[match_id]
+        skill_ids.add(<span class="bi">int</span>(string_id))
+
+    <span class="kw">return</span> <span class="bi">list</span>(skill_ids)</pre>
+
+  <h4>How it works:</h4>
+  <ul>
+    <li><strong><code>nlp(text)</code></strong> — Runs the full spaCy pipeline on the resume text, producing a <code>Doc</code> of tokenized words.</li>
+    <li><strong><code>matcher(doc)</code></strong> — Runs the PhraseMatcher over the Doc, returning a list of <code>(match_id, start, end)</code> tuples for every skill phrase found.</li>
+    <li><strong><code>nlp.vocab.strings[match_id]</code></strong> — spaCy stores match IDs as hashed integers internally. This line converts the hash back to the original string (which is the skill's database ID, e.g. <code>"42"</code>).</li>
+    <li><strong><code>set()</code> for deduplication</strong> — If "Python" appears 5 times in a resume, we only want to record it once. Using a set automatically deduplicates.</li>
+  </ul>
+</section>
+
+<!-- ─── 8. RECOMMENDATION ENGINE — CODE WALKTHROUGH ────── -->
+<section id="rec-walkthrough">
+  <h2><span class="badge">08</span> Recommendation Engine — Code Walkthrough</h2>
+  <p>This is the actual, unmodified code from <code>backend/app/services/recommender.py</code>:</p>
+
+  <h3><code>cosine_similarity()</code></h3>
+<pre><span class="kw">def</span> <span class="fn">cosine_similarity</span>(vec_a: List[<span class="bi">int</span>], vec_b: List[<span class="bi">int</span>]) -> <span class="bi">float</span>:
+    <span class="str">"""Pure cosine similarity between two equal-length binary vectors."""</span>
+    <span class="kw">if</span> <span class="bi">len</span>(vec_a) != <span class="bi">len</span>(vec_b):
+        <span class="kw">raise</span> <span class="cls">ValueError</span>(<span class="str">"Vectors must be the same length"</span>)
+    dot = <span class="bi">sum</span>(a * b <span class="kw">for</span> a, b <span class="kw">in</span> <span class="bi">zip</span>(vec_a, vec_b))
+    norm_a = <span class="bi">sum</span>(a * a <span class="kw">for</span> a <span class="kw">in</span> vec_a) ** <span class="num">0.5</span>
+    norm_b = <span class="bi">sum</span>(b * b <span class="kw">for</span> b <span class="kw">in</span> vec_b) ** <span class="num">0.5</span>
+    <span class="kw">if</span> norm_a == <span class="num">0</span> <span class="kw">or</span> norm_b == <span class="num">0</span>:
+        <span class="kw">return</span> <span class="num">0.0</span>
+    <span class="kw">return</span> dot / (norm_a * norm_b)</pre>
+
+  <h4>The Math Explained:</h4>
+  <p>Cosine similarity measures the <strong>angle</strong> between two vectors. The formula is:</p>
+  <pre style="text-align:center;font-size:16px;border:none;background:transparent;color:var(--accent-orange)">
+similarity = (A · B) / (‖A‖ × ‖B‖)
+  </pre>
+  <ul>
+    <li><strong>Dot product (A · B)</strong> — counts how many skills are shared between user and job (since vectors are binary 0/1, multiplication gives 1 only when both have the skill).</li>
+    <li><strong>Norms (‖A‖, ‖B‖)</strong> — the "length" of each vector, computed as the square root of the sum of squares.</li>
+    <li><strong>Result</strong> — dividing the dot product by the norms normalizes the score to the range [0.0, 1.0] regardless of how many total skills exist.</li>
+  </ul>
+
+  <h3><code>build_skill_vectors()</code></h3>
+<pre><span class="kw">def</span> <span class="fn">build_skill_vectors</span>(
+    user_skill_ids: Set[<span class="bi">int</span>], job_skill_ids: Set[<span class="bi">int</span>]
+) -> Tuple[List[<span class="bi">int</span>], List[<span class="bi">int</span>]]:
+    <span class="str">"""Builds binary presence vectors over the union of both skill ID sets."""</span>
+    all_skill_ids = <span class="bi">sorted</span>(user_skill_ids | job_skill_ids)
+    user_vec = [<span class="num">1</span> <span class="kw">if</span> sid <span class="kw">in</span> user_skill_ids <span class="kw">else</span> <span class="num">0</span> <span class="kw">for</span> sid <span class="kw">in</span> all_skill_ids]
+    job_vec = [<span class="num">1</span> <span class="kw">if</span> sid <span class="kw">in</span> job_skill_ids <span class="kw">else</span> <span class="num">0</span> <span class="kw">for</span> sid <span class="kw">in</span> all_skill_ids]
+    <span class="kw">return</span> user_vec, job_vec</pre>
+
+  <h4>Example:</h4>
+  <table>
+    <tr><th></th><th>Python (id=1)</th><th>SQL (id=2)</th><th>Docker (id=3)</th></tr>
+    <tr><td><strong>User skills: {1, 2}</strong></td><td>1</td><td>1</td><td>0</td></tr>
+    <tr><td><strong>Job requires: {1, 3}</strong></td><td>1</td><td>0</td><td>1</td></tr>
+  </table>
+  <p>The union of skill IDs is <code>{1, 2, 3}</code>. Each gets a 1 or 0 depending on whether the user/job has it. Cosine similarity of <code>[1,1,0]</code> and <code>[1,0,1]</code> = <code>0.5</code>.</p>
+
+  <h3><code>calculate_job_matches()</code></h3>
+<pre><span class="kw">def</span> <span class="fn">calculate_job_matches</span>(db: Session, current_user: User) -> List[<span class="bi">dict</span>]:
+    <span class="str">"""
+    For the current user, scores every job by cosine similarity of skill
+    vectors, finds missing skills, and attaches course recommendations.
+    Returns results sorted by match_score descending.
+    """</span>
+    user_skill_ids = {s.id <span class="kw">for</span> s <span class="kw">in</span> current_user.skills}
+    jobs = db.query(Job).all()
+    results = []
+
+    <span class="kw">for</span> job <span class="kw">in</span> jobs:
+        job_skill_ids = {s.id <span class="kw">for</span> s <span class="kw">in</span> job.skills}
+        <span class="kw">if not</span> job_skill_ids:
+            <span class="kw">continue</span>
+
+        user_vec, job_vec = build_skill_vectors(user_skill_ids, job_skill_ids)
+        score = cosine_similarity(user_vec, job_vec)
+
+        missing_ids = compute_missing_skill_ids(user_skill_ids, job_skill_ids)
+        missing_skills = (
+            db.query(Skill).filter(Skill.id.in_(missing_ids)).all()
+            <span class="kw">if</span> missing_ids
+            <span class="kw">else</span> []
+        )
+        courses = recommend_courses_for_skills(missing_ids, db)
+
+        results.append({
+            <span class="str">"job_id"</span>: job.id,
+            <span class="str">"job"</span>: job,
+            <span class="str">"user_id"</span>: current_user.id,
+            <span class="str">"match_score"</span>: <span class="bi">round</span>(score, <span class="num">4</span>),
+            <span class="str">"missing_skills"</span>: [s.name <span class="kw">for</span> s <span class="kw">in</span> missing_skills],
+            <span class="str">"recommended_courses"</span>: [
+                {<span class="str">"title"</span>: c.title, <span class="str">"provider"</span>: c.provider, <span class="str">"url"</span>: c.url}
+                <span class="kw">for</span> c <span class="kw">in</span> courses
+            ],
+        })
+
+    results.sort(key=<span class="kw">lambda</span> r: r[<span class="str">"match_score"</span>], reverse=<span class="num">True</span>)
+    <span class="kw">return</span> results</pre>
+
+  <h4>The Full Algorithm:</h4>
+  <ol>
+    <li>Get the current user's skill IDs as a <code>set</code>.</li>
+    <li>Load ALL jobs from the database.</li>
+    <li>For each job: build binary presence vectors over the <strong>union</strong> of user + job skills, then compute cosine similarity.</li>
+    <li>Compute <strong>missing skills</strong> as a set difference: <code>job_skill_ids - user_skill_ids</code>.</li>
+    <li>Find <strong>courses</strong> that teach at least one missing skill via <code>course_skills</code> join table.</li>
+    <li>Sort all results by <code>match_score</code> descending (best matches first).</li>
+  </ol>
+</section>
+
+<!-- ─── 9. CODE MAP ─────────────────────────────────────── -->
+<section id="codemap">
+  <h2><span class="badge">09</span> Code Map</h2>
+  <table>
+    <tr><th>File</th><th>Description</th></tr>
+    <tr><td><code>backend/app/main.py</code></td><td>FastAPI app entry point — registers routers, CORS middleware, root endpoint.</td></tr>
+    <tr><td><code>backend/app/core/config.py</code></td><td>Pydantic Settings — loads <code>SECRET_KEY</code>, <code>DATABASE_URL</code>, token expiry from <code>.env</code>.</td></tr>
+    <tr><td><code>backend/app/core/security.py</code></td><td>Password hashing (bcrypt) and JWT token creation/verification.</td></tr>
+    <tr><td><code>backend/app/db/session.py</code></td><td>SQLAlchemy engine and session factory — creates the DB connection.</td></tr>
+    <tr><td><code>backend/app/models/user.py</code></td><td>User ORM model — <code>users</code> table with relationships to resumes, recommendations, skills.</td></tr>
+    <tr><td><code>backend/app/models/job.py</code></td><td>Job ORM model — <code>jobs</code> table with skills relationship via <code>job_skills</code>.</td></tr>
+    <tr><td><code>backend/app/models/skill.py</code></td><td>Skill ORM model + all three join tables (<code>user_skills</code>, <code>job_skills</code>, <code>course_skills</code>).</td></tr>
+    <tr><td><code>backend/app/models/course.py</code></td><td>Course ORM model — <code>courses</code> table with skills relationship.</td></tr>
+    <tr><td><code>backend/app/models/resume.py</code></td><td>Resume ORM model — stores extracted <code>raw_text</code> and <code>uploaded_at</code>.</td></tr>
+    <tr><td><code>backend/app/models/recommendation.py</code></td><td>Recommendation ORM model — stores <code>match_score</code> and <code>missing_skills</code> JSON.</td></tr>
+    <tr><td><code>backend/app/api/auth.py</code></td><td>Auth routes — <code>/register</code>, <code>/login</code>, <code>/me</code> (GET & PUT).</td></tr>
+    <tr><td><code>backend/app/api/resumes.py</code></td><td>Resume routes — <code>/upload</code> (PDF parsing + skill extraction), <code>/skills</code> (get user skills).</td></tr>
+    <tr><td><code>backend/app/api/recommendations.py</code></td><td>Recommendation routes — <code>/jobs</code> (cosine similarity matching), <code>/courses</code> (stub).</td></tr>
+    <tr><td><code>backend/app/api/deps.py</code></td><td>Dependency injection — <code>get_db</code> session and <code>get_current_user</code> from JWT.</td></tr>
+    <tr><td><code>backend/app/services/recommender.py</code></td><td>Core algorithm — cosine similarity, skill vector construction, job matching, course recommendations.</td></tr>
+    <tr><td><code>backend/app/services/nlp_extractor.py</code></td><td>NLP pipeline — spaCy PhraseMatcher construction and skill extraction from text.</td></tr>
+    <tr><td><code>backend/app/services/pdf_parser.py</code></td><td>PDF text extraction — PyMuPDF reads bytes, cleans whitespace.</td></tr>
+    <tr><td><code>backend/app/schemas/</code></td><td>Pydantic schemas for request/response validation (user, job, skill, resume, recommendation, course).</td></tr>
+    <tr><td><code>backend/data/jobs.json</code></td><td>Seeded job listings with skill requirements.</td></tr>
+    <tr><td><code>backend/data/courses.json</code></td><td>Seeded online courses mapped to skills they teach.</td></tr>
+    <tr><td><code>backend/data/skills.json</code></td><td>Seeded skill taxonomy (name + category).</td></tr>
+    <tr><td><code>backend/data/seed.py</code></td><td>Script to load JSON data into PostgreSQL tables.</td></tr>
+    <tr><td><code>backend/tests/test_recommender.py</code></td><td>9 tests — cosine similarity, vector building, missing skills, end-to-end matching.</td></tr>
+    <tr><td><code>backend/tests/test_nlp.py</code></td><td>6 tests — PhraseMatcher loading, case-insensitive matching, deduplication, multi-word skills.</td></tr>
+    <tr><td><code>backend/tests/test_api_integration.py</code></td><td>1 integration test — full API request through <code>/recommendations/jobs</code> with mocked DB.</td></tr>
+    <tr><td><code>frontend/src/App.jsx</code></td><td>React router — defines routes for Login, Register, Dashboard, Profile.</td></tr>
+    <tr><td><code>frontend/src/context/AuthContext.jsx</code></td><td>React context — manages JWT token storage and auth state globally.</td></tr>
+    <tr><td><code>frontend/src/services/api.js</code></td><td>Axios instance — configures base URL and auth header for API calls.</td></tr>
+    <tr><td><code>frontend/src/pages/</code></td><td>Page components — Dashboard, Login, Register, Profile.</td></tr>
+  </table>
+</section>
+
+<!-- ─── 10. KNOWN LIMITATIONS ──────────────────────────── -->
+<section id="limitations">
+  <h2><span class="badge">10</span> Known Limitations</h2>
+  <p style="color:var(--accent-orange)"><em>Say these before the professor asks — it shows you understand the trade-offs.</em></p>
+  <div class="card orange">
+    <ul>
+      <li><strong>Static seeded datasets</strong> — jobs and courses come from curated JSON files, not live scraping. The system can't discover new job postings on its own.</li>
+      <li><strong>Binary (not weighted) skill vectors</strong> — each skill is either present (1) or absent (0). A user with 5 years of Python experience is treated the same as someone who mentioned Python once.</li>
+      <li><strong>PhraseMatcher rebuilt on every call</strong> — <code>load_skill_matcher()</code> queries all skills and builds the matcher from scratch on every resume upload, instead of caching it.</li>
+      <li><strong>Exact-phrase matching only</strong> — the PhraseMatcher looks for exact skill names. It won't match synonyms or abbreviations. "JS" won't match "JavaScript", "ML" won't match "Machine Learning".</li>
+      <li><strong>No per-skill importance weighting</strong> — all skills count equally. In reality, "Python" might be more important than "Git" for a data science job, but our algorithm treats them the same.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ─── 11. POSSIBLE IMPROVEMENTS ──────────────────────── -->
+<section id="improvements">
+  <h2><span class="badge">11</span> Possible Improvements</h2>
+  <div class="card green">
+    <ul>
+      <li><strong>Weighted skills by importance</strong> — assign weights (e.g. "core" vs "nice-to-have") to each skill in a job requirement, then use weighted cosine similarity instead of binary.</li>
+      <li><strong>Synonym / alias table</strong> — create a mapping table where "JS" → "JavaScript", "ML" → "Machine Learning", "k8s" → "Kubernetes", and resolve aliases before matching.</li>
+      <li><strong>Caching the PhraseMatcher</strong> — build the matcher once on app startup (or when skills are updated) and store it in-memory, rather than rebuilding per request.</li>
+      <li><strong>Embedding-based similarity</strong> — instead of binary vectors, use NLP embeddings (e.g. sentence-transformers) to capture semantic similarity between skill descriptions, not just exact name matches.</li>
+      <li><strong>Pagination on the recommendations endpoint</strong> — currently returns ALL job matches at once. For a large dataset, this should be paginated with <code>limit</code> and <code>offset</code> query parameters.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ─── 12. FUTURE ADD-ONS ─────────────────────────────── -->
+<section id="future">
+  <h2><span class="badge">12</span> Future Add-ons (Phase 2 — Already Scoped)</h2>
+  <div class="card cyan">
+    <table>
+      <tr><th>Feature</th><th>Description</th></tr>
+      <tr><td>Saved Jobs</td><td>Users can bookmark job recommendations for later review.</td></tr>
+      <tr><td>Recommendation History</td><td>Store past recommendation results so users can track how their match scores improve over time.</td></tr>
+      <tr><td>Admin: Manage Users</td><td>Admin dashboard to view, edit roles, and deactivate user accounts.</td></tr>
+      <tr><td>Admin: Manage Course Recommendations</td><td>Admin interface to add/edit/remove courses and their skill mappings.</td></tr>
+      <tr><td>Admin: Analytics</td><td>Dashboard showing most-common skills, highest-demand jobs, user activity stats.</td></tr>
+      <tr><td>Dockerization</td><td>Package the entire app (frontend, backend, database) in Docker containers with <code>docker-compose</code>.</td></tr>
+      <tr><td>CI/CD with GitHub Actions</td><td>Automated test runs on every push, plus deployment pipeline to a cloud provider.</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ─── 13. PROFESSOR Q&A ──────────────────────────────── -->
+<section id="qa">
+  <h2><span class="badge">13</span> Likely Professor Q&amp;A</h2>
+  <p>Click each question to expand the answer:</p>
+
+  <details>
+    <summary>How is the match score calculated?</summary>
+    <div class="answer">
+      <p>We build two binary vectors — one for the user's skills and one for the job's required skills — over the union of all skill IDs between them. Then we compute cosine similarity: the dot product divided by the product of the vector magnitudes. The result is a float between 0.0 (no overlap) and 1.0 (perfect match). For example, if a user has Python and SQL, and a job requires Python and Docker, the vectors are <code>[1,1,0]</code> and <code>[1,0,1]</code>, giving a score of 0.5.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Why cosine similarity instead of a trained ML model?</summary>
+    <div class="answer">
+      <p>A trained ML model (like a classifier) requires labeled training data — we'd need thousands of examples of "user X is a good/bad match for job Y" with ground truth labels. We don't have that data. Cosine similarity is <strong>deterministic</strong>, <strong>explainable</strong> (we can show exactly which skills matched and which are missing), and works perfectly with the structured skill data we have. It's also a well-established technique in information retrieval and recommendation systems.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>How does the system define a "skill"?</summary>
+    <div class="answer">
+      <p>A skill is a row in the <code>skills</code> table with a unique <code>name</code> (e.g. "Python", "Machine Learning", "Docker") and an optional <code>category</code> (e.g. "Programming", "DevOps"). The skill taxonomy is seeded from <code>skills.json</code>. The NLP extractor uses spaCy PhraseMatcher to scan resume text for exact matches (case-insensitive) against these skill names. Skills are linked to users, jobs, and courses via three many-to-many join tables.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Is this tested?</summary>
+    <div class="answer">
+      <p>Yes — there are 16 passing unit tests across three test files:</p>
+      <ul>
+        <li><strong>test_recommender.py (9 tests)</strong> — covers cosine similarity edge cases (identical vectors, orthogonal vectors, partial overlap, empty vectors, mismatched lengths), vector building, missing skill computation, and end-to-end job matching with sorting.</li>
+        <li><strong>test_nlp.py (6 tests)</strong> — covers PhraseMatcher construction from DB, exact matching, case-insensitive matching, multi-skill detection, no-match scenarios, deduplication of repeated mentions, and multi-word skill names.</li>
+        <li><strong>test_api_integration.py (1 test)</strong> — full integration test that hits the <code>/api/v1/recommendations/jobs</code> endpoint via FastAPI's TestClient with mocked dependencies, verifying status code, response structure, match scores, and user/job IDs.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details>
+    <summary>Where do jobs and courses come from?</summary>
+    <div class="answer">
+      <p>They come from curated static JSON files (<code>data/jobs.json</code>, <code>data/courses.json</code>, <code>data/skills.json</code>) that are loaded into PostgreSQL via a seed script (<code>data/seed.py</code>). We intentionally chose this approach over live web scraping because scraping job boards like Indeed or LinkedIn violates their ToS, is brittle (breaks when their HTML changes), and introduces network dependency. Static seeded data gives us a consistent, reproducible dataset for development, demos, and testing.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>What would you improve with more time?</summary>
+    <div class="answer">
+      <p>Five things, in priority order:</p>
+      <ol>
+        <li><strong>Weighted skill vectors</strong> — assign importance levels to skills per job ("core" vs "nice-to-have") for more nuanced scoring.</li>
+        <li><strong>Synonym resolution</strong> — build an alias table so "JS" → "JavaScript" and "ML" → "Machine Learning" before matching.</li>
+        <li><strong>PhraseMatcher caching</strong> — build once on startup instead of rebuilding per request.</li>
+        <li><strong>Embedding-based similarity</strong> — use sentence-transformers to capture semantic relationships between skills, not just exact name matches.</li>
+        <li><strong>Pagination</strong> — the recommendations endpoint currently returns all matches at once; it should paginate for large job datasets.</li>
+      </ol>
+    </div>
+  </details>
+
+  <details>
+    <summary>Why did you use FastAPI instead of Flask or Django?</summary>
+    <div class="answer">
+      <p>Flask is synchronous, has no built-in data validation, and requires manual OpenAPI setup. Django bundles a full admin panel, template engine, and ORM we don't need — it's too heavy for a pure REST API. FastAPI gives us async support, native Pydantic validation (type errors are caught automatically), and auto-generated Swagger docs at <code>/docs</code> — perfect for an API-only backend.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Why not use spaCy's built-in Named Entity Recognition?</summary>
+    <div class="answer">
+      <p>SpaCy's default NER model (<code>en_core_web_sm</code>) is trained to recognize generic entity types like PERSON, ORG, GPE (locations), DATE, etc. It does <strong>not</strong> have a "SKILL" entity type. Technical skill names like "Python", "Docker", "React" would be recognized as ORG or not at all. Training a custom NER model would require thousands of manually labeled resume examples. Instead, we use PhraseMatcher with a known skill taxonomy — this gives us <strong>precise, guaranteed matches</strong> without any model training.</p>
+    </div>
+  </details>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  TEAM DEEP DIVES                                       -->
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<section id="deep-dive-krish" style="padding-top: 40px;">
+  <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:40px; margin-top:20px;">
+<h1>Krish's Deep Dive: NLP, Recommender, & Backend</h1>
+  <p>Since you have zero knowledge of NLP, this page is written specifically for you. It breaks down <strong>your exact responsibilities</strong> into plain English, line by line, so you can confidently present tomorrow.</p>
+
+  <!-- ========================================== -->
+  <!-- NLP EXPLANATION                            -->
+  <!-- ========================================== -->
+  <h2>1. NLP (Natural Language Processing) for Beginners</h2>
+  <p><strong>What is NLP?</strong> NLP is how computers read, understand, and make sense of human language. When someone uploads a resume, it's just a giant paragraph of text to the computer. NLP helps us read that paragraph and pull out the important words (like "Python" or "React").</p>
+  <p><strong>What is spaCy?</strong> spaCy is a massive Python library designed specifically for NLP. We use a feature of spaCy called the <code>PhraseMatcher</code>. Think of the PhraseMatcher as a super-fast <code>CTRL+F</code> (find) that looks for a huge list of skills inside the resume all at once.</p>
+
+  <h3>Code Walkthrough: <code>nlp_extractor.py</code></h3>
+  <div class="code-block">
+import spacy<br>
+from spacy.matcher import PhraseMatcher<br><br>
+
+# Load the spaCy AI model<br>
+nlp = spacy.load("en_core_web_sm")
+  </div>
+  <div class="line-explain">
+    <code>en_core_web_sm</code><br>
+    This is spaCy's "English Core Web Small" model. It's a pre-trained AI that already understands English grammar. We load it once and save it in the <code>nlp</code> variable.
+  </div>
+
+  <div class="code-block">
+def load_skill_matcher(db):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;matcher = PhraseMatcher(nlp.vocab, attr="LOWER")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;skills = db.query(Skill).all()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;for skill in skills:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pattern = nlp.make_doc(skill.name)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;matcher.add(str(skill.id), [pattern])<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return matcher
+  </div>
+  <div class="line-explain">
+    <code>attr="LOWER"</code><br>
+    This is the most important part of your NLP pipeline! It tells spaCy to convert everything to lowercase before matching. This means if a resume says "PYTHON", "python", or "Python", they will ALL match successfully.
+  </div>
+  <div class="line-explain">
+    <code>pattern = nlp.make_doc(skill.name)</code><br>
+    We grab all skills from our database. But spaCy can't search for raw text strings; it needs a "Doc" object. <code>make_doc</code> turns a string like "React" into a format spaCy understands.
+  </div>
+  <div class="line-explain">
+    <code>matcher.add(str(skill.id), [pattern])</code><br>
+    We add the pattern to our search engine. We use the skill's database ID (like "5") as the label. That way, when spaCy finds a match, it tells us "I found skill ID 5!".
+  </div>
+
+  <div class="code-block">
+def extract_skills_from_text(text, matcher):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;doc = nlp(text)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;matches = matcher(doc)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;skill_ids = set()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;for match_id, start, end in matches:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string_id = nlp.vocab.strings[match_id]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;skill_ids.add(int(string_id))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return list(skill_ids)
+  </div>
+  <div class="line-explain">
+    <code>doc = nlp(text)</code><br>
+    This takes the raw string of text from the user's PDF resume and processes it through spaCy's AI, breaking it down into words, punctuation, and grammar.
+  </div>
+  <div class="line-explain">
+    <code>set()</code><br>
+    A "set" in Python is a list that <strong>does not allow duplicates</strong>. If a user writes "Java" 10 times in their resume, we only want to record it once.
+  </div>
+  <div class="line-explain">
+    <code>nlp.vocab.strings[match_id]</code><br>
+    Internally, spaCy uses massive random numbers (hashes) for match IDs. This line converts that random number back into our database ID string (like "5"), which we then convert to an integer.
+  </div>
+
+  <!-- ========================================== -->
+  <!-- RECOMMENDER EXPLANATION                      -->
+  <!-- ========================================== -->
+  <h2>2. Recommendation Engine for Beginners</h2>
+  <p><strong>What is a Vector?</strong> In our system, a vector is just a list of 1s and 0s. If we have 3 total skills (Python, SQL, React), and a user knows Python and React, their vector is <code>[1, 0, 1]</code>.</p>
+  <p><strong>What is Cosine Similarity?</strong> It's a math formula used to figure out how similar two vectors are. Instead of just counting overlapping skills, it treats the lists of 1s and 0s as lines (vectors) on a graph and measures the angle between them. An angle of 0 degrees means they match perfectly (Score = 1.0). A 90-degree angle means they share absolutely no skills (Score = 0.0).</p>
+
+  <h3>Code Walkthrough: <code>recommender.py</code></h3>
+  <div class="code-block">
+def build_skill_vectors(user_skill_ids, job_skill_ids):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;all_skill_ids = sorted(user_skill_ids | job_skill_ids)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;user_vec = [1 if sid in user_skill_ids else 0 for sid in all_skill_ids]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;job_vec = [1 if sid in job_skill_ids else 0 for sid in all_skill_ids]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return user_vec, job_vec
+  </div>
+  <div class="line-explain">
+    <code>user_skill_ids | job_skill_ids</code><br>
+    The <code>|</code> symbol combines the two sets of skills together (a mathematical Union). We need a master list of all skills involved in this specific matchup to create our 1s and 0s.
+  </div>
+
+  <div class="code-block">
+def cosine_similarity(vec_a, vec_b):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;dot = sum(a * b for a, b in zip(vec_a, vec_b))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;norm_a = sum(a * a for a in vec_a) ** 0.5<br>
+&nbsp;&nbsp;&nbsp;&nbsp;norm_b = sum(b * b for b in vec_b) ** 0.5<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return dot / (norm_a * norm_b)
+  </div>
+  <div class="line-explain">
+    <code>dot = sum(a * b ...)</code><br>
+    This is the "Dot Product". Because our vectors are just 1s and 0s, <code>a * b</code> is only <code>1</code> if BOTH the user and the job have the skill (1 * 1 = 1). Otherwise, it's 0. So this literally just counts how many skills they share!
+  </div>
+  <div class="line-explain">
+    <code>** 0.5</code><br>
+    This is Python's way of doing a square root. We divide the dot product by the square root of the vectors' lengths to normalize the score to be exactly between 0.0 and 1.0.
+  </div>
+
+  <div class="code-block">
+missing_ids = job_skill_ids - user_skill_ids<br>
+courses = recommend_courses_for_skills(missing_ids, db)
+  </div>
+  <div class="line-explain">
+    <code>job_skill_ids - user_skill_ids</code><br>
+    This is the easiest way to find missing skills! We just take the set of job requirements and subtract the skills the user has. What's left over are the missing skills. Then, we fetch courses from the database that teach those missing skills.
+  </div>
+
+  <!-- ========================================== -->
+  <!-- BACKEND ARCHITECTURE                       -->
+  <!-- ========================================== -->
+  <h2>3. Backend Architecture & The Upload Flow</h2>
+  <p><strong>What is FastAPI?</strong> It's the framework we use to build the backend. It receives requests from the React frontend (like "Here is a PDF!"), processes them, and sends data back.</p>
+
+  <h3>Code Walkthrough: The Resume Upload (<code>resumes.py</code>)</h3>
+  <div class="code-block">
+@router.post("/upload")<br>
+async def upload_resume(file: UploadFile, db: Session, current_user):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;file_bytes = await file.read()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;raw_text = parse_pdf_from_bytes(file_bytes)
+  </div>
+  <div class="line-explain">
+    <code>parse_pdf_from_bytes</code><br>
+    The frontend sends the PDF as a binary file. We pass these bytes directly to PyMuPDF, which opens the PDF in memory and extracts all the text as a giant string.
+  </div>
+
+  <div class="code-block">
+&nbsp;&nbsp;&nbsp;&nbsp;matcher = load_skill_matcher(db)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;skill_ids = extract_skills_from_text(raw_text, matcher)<br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;current_user.skills.clear()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;matched_skills = db.query(Skill).filter(Skill.id.in_(skill_ids)).all()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;for skill in matched_skills:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;current_user.skills.append(skill)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;db.commit()
+  </div>
+  <div class="line-explain">
+    <code>current_user.skills.clear()</code><br>
+    If the user uploads a new resume, we wipe their old skills first. Then we take the newly extracted <code>skill_ids</code>, find them in the database, and attach them to the <code>current_user</code>. Finally, <code>db.commit()</code> permanently saves these changes to PostgreSQL.
+  </div>
+
+  <!-- ========================================== -->
+  <!-- SUMMARY PITCH                              -->
+  <!-- ========================================== -->
+  <h2>Your "If the professor asks" Cheat Sheet</h2>
+  <ul>
+    <li><strong>"Krish, why did you use spaCy instead of just regular expressions (Regex)?"</strong><br>
+      <em>Answer:</em> "Regular expressions get very messy with word boundaries and punctuation. SpaCy's PhraseMatcher tokenizes the text properly, meaning it understands where words start and end, and easily handles case-insensitivity using <code>attr='LOWER'</code>."</li>
+    <li><strong>"Why Cosine Similarity instead of Jaccard?"</strong><br>
+      <em>Answer:</em> "Jaccard similarity only looks at overlapping sets. Cosine similarity is the industry standard for vector-based matching in information retrieval, and it lays the foundation if we want to upgrade to weighted skills or embeddings in the future."</li>
+    <li><strong>"What happens if a user uploads a resume without any matched skills?"</strong><br>
+      <em>Answer:</em> "Their skill vector will be all zeros. The dot product will be zero, and our function safely catches division by zero, returning a match score of 0.0 for every job."</li>
+  </ul>
+  
+  <p style="margin-top:40px; font-weight:bold; color:var(--accent-green); text-align:center;">You are going to crush this presentation! Good luck.</p>
+  </div>
+</section>
+
+<section id="deep-dive-shishir" style="padding-top: 40px;">
+  <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:40px; margin-top:20px;">
+<h1>Shishir's Deep Dive: Auth, Database & Testing</h1>
+  <p>As Co-Lead Developer, you built the foundation that makes the app secure and stable. This guide breaks down your responsibilities so you can explain exactly how authentication and the database layer work.</p>
+
+  <!-- ========================================== -->
+  <!-- AUTHENTICATION                             -->
+  <!-- ========================================== -->
+  <h2>1. Authentication (JWT & bcrypt)</h2>
+  <p><strong>What is bcrypt?</strong> We never save raw passwords in the database (like "password123"). Instead, we use `bcrypt` to "hash" them into unreadable gibberish. It's a one-way math function, meaning even if someone steals our database, they can't reverse the hash back into the password.</p>
+  <p><strong>What is JWT?</strong> JWT stands for JSON Web Token. When a user logs in, we give them a token (like a digital VIP pass). Instead of sending their username and password every time they click a button, their browser just shows the token to the server.</p>
+
+  <h3>Code Walkthrough: <code>security.py</code></h3>
+  <div class="code-block">
+def get_password_hash(password: str) -> str:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;salt = bcrypt.gensalt()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;pwd_bytes = password.encode('utf-8')<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return bcrypt.hashpw(pwd_bytes, salt).decode('utf-8')
+  </div>
+  <div class="line-explain">
+    <code>bcrypt.gensalt()</code><br>
+    A "salt" is random data added to a password before hashing. It prevents hackers from using pre-computed tables (rainbow tables) to crack common passwords. We generate a salt, hash the password bytes with it, and return the safe string.
+  </div>
+
+  <!-- ========================================== -->
+  <!-- DATABASE LAYER                             -->
+  <!-- ========================================== -->
+  <h2>2. Database Layer & SQLAlchemy</h2>
+  <p><strong>Why use SQLAlchemy?</strong> Instead of writing raw SQL code (<code>SELECT * FROM users WHERE...</code>), SQLAlchemy lets us use Python objects to talk to the database. This is called an ORM (Object-Relational Mapper). It protects us from SQL Injection attacks and makes our code much cleaner.</p>
+
+  <h3>Code Walkthrough: <code>models/user.py</code></h3>
+  <div class="code-block">
+class User(Base):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;__tablename__ = "users"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;id = Column(Integer, primary_key=True, index=True)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;username = Column(String, unique=True, index=True, nullable=False)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;email = Column(String, unique=True, index=True, nullable=False)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;password_hash = Column(String, nullable=False)<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;skills = relationship("Skill", secondary=user_skills, backref="users")
+  </div>
+  <div class="line-explain">
+    <code>relationship(..., secondary=user_skills)</code><br>
+    This tells SQLAlchemy that a User can have many Skills, and a Skill can belong to many Users. It links them together using a middle-man table (the <code>secondary</code> table named <code>user_skills</code>).
+  </div>
+
+  <!-- ========================================== -->
+  <!-- SCHEMAS                                    -->
+  <!-- ========================================== -->
+  <h2>3. Data Validation with Pydantic</h2>
+  <p>Before any data touches our database, we validate it using Pydantic schemas. If a user tries to send text for their age instead of a number, Pydantic throws an error automatically.</p>
+  
+  <!-- ========================================== -->
+  <!-- SUMMARY PITCH                              -->
+  <!-- ========================================== -->
+  <h2>Your "If the professor asks" Cheat Sheet</h2>
+  <ul>
+    <li><strong>"Why did you use PostgreSQL instead of SQLite or MongoDB?"</strong><br>
+      <em>Answer:</em> "SQLite locks the whole database during a write, which is bad for multiple users. MongoDB is a NoSQL database, but our data is highly relational—skills are linked to users, jobs, AND courses. A relational database like PostgreSQL handles these multi-table joins perfectly and safely."</li>
+    <li><strong>"Why is JWT better than Session-based authentication?"</strong><br>
+      <em>Answer:</em> "Sessions require the server to store active logins in memory or a database. JWT is stateless—the token itself contains the user ID securely signed with our <code>SECRET_KEY</code>. This means the server doesn't have to do a database lookup just to verify the user is logged in, saving server resources."</li>
+  </ul>
+  </div>
+</section>
+
+<section id="deep-dive-prajjwal" style="padding-top: 40px;">
+  <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:40px; margin-top:20px;">
+<h1>Prajjwal's Deep Dive: React & Tailwind UI</h1>
+  <p>As a Frontend Developer, you built the visual components and routing that users interact with. Here is your cheat sheet on exactly how the frontend technologies operate.</p>
+
+  <!-- ========================================== -->
+  <!-- REACT                                      -->
+  <!-- ========================================== -->
+  <h2>1. React UI & Pages</h2>
+  <p><strong>What is React?</strong> React is a JavaScript library built by Facebook. Instead of writing one massive HTML file, React lets us build our website using "Components"—reusable blocks of code like a <code>JobCard</code> or a <code>Navbar</code>. We can reuse these components anywhere without rewriting the code.</p>
+  <p><strong>What is Vite?</strong> Vite is our build tool. In older projects, people used "Create React App" (Webpack), which was very slow to start up. Vite uses modern browser features to instantly update the screen the moment you save a file, making development lightning fast.</p>
+
+  <!-- ========================================== -->
+  <!-- ROUTING                                    -->
+  <!-- ========================================== -->
+  <h2>2. React Router (Navigation)</h2>
+  <p>Because React creates a "Single Page Application" (SPA), the browser doesn't actually load new HTML pages when you click a link. Instead, <strong>React Router</strong> intercepts the click, swaps out the components on the screen, and changes the URL in the address bar. This makes the website feel extremely fast, like a mobile app.</p>
+
+  <!-- ========================================== -->
+  <!-- TAILWIND                                   -->
+  <!-- ========================================== -->
+  <h2>3. Styling with TailwindCSS</h2>
+  <p><strong>What is Tailwind?</strong> It is a "utility-first" CSS framework. Instead of opening a separate <code>.css</code> file and writing custom classes (like <code>.btn-primary { background: blue; }</code>), we just add utility classes directly into our HTML elements, like <code>class="bg-blue-500 text-white p-4"</code>.</p>
+  
+  <!-- ========================================== -->
+  <!-- SUMMARY PITCH                              -->
+  <!-- ========================================== -->
+  <h2>Your "If the professor asks" Cheat Sheet</h2>
+  <ul>
+    <li><strong>"Why use React instead of standard HTML/CSS/JS?"</strong><br>
+      <em>Answer:</em> "Standard HTML gets very messy as the app grows. React's component-based architecture keeps the code modular, reusable, and much easier to maintain. It also handles state changes efficiently by updating only the parts of the DOM that changed, not reloading the whole page."</li>
+    <li><strong>"Why TailwindCSS instead of Bootstrap?"</strong><br>
+      <em>Answer:</em> "Bootstrap forces you to use their predefined, generic-looking components. Tailwind provides low-level utility classes, giving us complete custom design freedom directly inside our JSX files without context-switching to CSS files."</li>
+  </ul>
+  </div>
+</section>
+
+<section id="deep-dive-sahil" style="padding-top: 40px;">
+  <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:40px; margin-top:20px;">
+<h1>Sahil's Deep Dive: API & State Management</h1>
+  <p>As a Frontend Developer focusing on integration, you built the invisible glue connecting the visual React pages to the Python backend. This guide explains your specific responsibilities.</p>
+
+  <!-- ========================================== -->
+  <!-- AXIOS & API                                -->
+  <!-- ========================================== -->
+  <h2>1. API Integration with Axios</h2>
+  <p><strong>What is Axios?</strong> Axios is a JavaScript library used to make HTTP requests (like GET, POST, PUT) from the browser to our FastAPI backend. We use it instead of the default browser <code>fetch()</code> because it automatically converts JSON data for us and provides better error handling.</p>
+  <p><strong>What are Interceptors?</strong> In <code>api.js</code>, we use Axios Interceptors to attach the user's JWT token to every single request automatically. This means we don't have to manually write token logic on every page.</p>
+
+  <!-- ========================================== -->
+  <!-- AUTH CONTEXT                               -->
+  <!-- ========================================== -->
+  <h2>2. Global State Management (AuthContext)</h2>
+  <p><strong>What is the Context API?</strong> Normally in React, to share data between components, you have to pass it down manually step-by-step (called "prop drilling"). The Context API lets us create a "global bubble" of state.</p>
+  <p><strong>How AuthContext Works:</strong> We created an <code>AuthContext</code> that wraps the entire app. It stores whether the user is logged in and their profile details. If the user logs out, the Context updates, and every component in the entire app instantly reacts to the change and hides protected data.</p>
+  
+  <!-- ========================================== -->
+  <!-- SUMMARY PITCH                              -->
+  <!-- ========================================== -->
+  <h2>Your "If the professor asks" Cheat Sheet</h2>
+  <ul>
+    <li><strong>"Why did you use Axios instead of standard fetch API?"</strong><br>
+      <em>Answer:</em> "Axios automatically transforms JSON data, catches HTTP errors in a <code>.catch()</code> block cleanly (whereas fetch doesn't throw errors for 400/500 status codes), and lets us easily set up an interceptor to inject the Authorization header everywhere automatically."</li>
+    <li><strong>"Why use Context API instead of Redux for state management?"</strong><br>
+      <em>Answer:</em> "Redux is great but requires a lot of boilerplate code. For our app, the only global state we really need to track is the user's authentication status and JWT token. React's built-in Context API handles this perfectly and natively without the extra bulk of Redux."</li>
+  </ul>
+  </div>
+</section>
+
+</main>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Sidebar Active Link Highlight                         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<script>
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.sidebar nav a');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const link = document.querySelector(`.sidebar nav a[href="#${entry.target.id}"]`);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+
+// Close mobile sidebar on link click
+navLinks.forEach(link => {
+  link.addEventListener('click', () => {
+    document.querySelector('.sidebar').classList.remove('open');
+  });
+});
+</script>
+
+</body>
+</html>
