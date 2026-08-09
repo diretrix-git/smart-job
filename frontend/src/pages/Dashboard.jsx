@@ -14,7 +14,19 @@ export default function Dashboard() {
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      if (selectedFile.size > 10 * 1024 * 1024) {
+        setMessage('File size exceeds 10MB limit.');
+        return;
+      }
+      const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword'];
+      const fileExt = selectedFile.name.toLowerCase().slice(selectedFile.name.lastIndexOf('.'));
+      if (!allowedTypes.includes(selectedFile.type) && !['.pdf', '.docx', '.doc'].includes(fileExt)) {
+        setMessage('Please upload a PDF or DOCX file.');
+        return;
+      }
+      setFile(selectedFile);
+      setMessage('');
     }
   };
 
@@ -32,7 +44,19 @@ export default function Dashboard() {
     e.preventDefault();
     setIsDragOver(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      setFile(e.dataTransfer.files[0]);
+      const selectedFile = e.dataTransfer.files[0];
+      if (selectedFile.size > 10 * 1024 * 1024) {
+        setMessage('File size exceeds 10MB limit.');
+        return;
+      }
+      const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword'];
+      const fileExt = selectedFile.name.toLowerCase().slice(selectedFile.name.lastIndexOf('.'));
+      if (!allowedTypes.includes(selectedFile.type) && !['.pdf', '.docx', '.doc'].includes(fileExt)) {
+        setMessage('Please upload a PDF or DOCX file.');
+        return;
+      }
+      setFile(selectedFile);
+      setMessage('');
     }
   };
 
@@ -101,7 +125,7 @@ export default function Dashboard() {
                   <span>Browse files</span>
                   <input 
                     type="file" 
-                    accept="application/pdf" 
+                    accept=".pdf,.docx,.doc,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword" 
                     onChange={handleFileChange}
                     className="hidden"
                   />
@@ -115,11 +139,16 @@ export default function Dashboard() {
                 disabled={uploading}
                 className="mt-6 w-full py-2 bg-indigo-600 text-white rounded-md font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
               >
-                {uploading ? 'Uploading...' : 'Upload PDF'}
+                {uploading ? 'Uploading...' : 'Upload File'}
               </button>
             )}
           </div>
-          {message && <p className="mt-4 text-center text-sm font-medium text-emerald-600 flex items-center justify-center"><CheckCircle className="w-4 h-4 mr-2" /> {message}</p>}
+          {message && (
+            <p className={`mt-4 text-center text-sm font-medium flex items-center justify-center ${message.includes('successfully') || message.includes('Found') ? 'text-emerald-600' : 'text-red-600'}`}>
+              {message.includes('successfully') || message.includes('Found') ? <CheckCircle className="w-4 h-4 mr-2" /> : null}
+              {message}
+            </p>
+          )}
         </div>
 
         <div className="space-y-8">
