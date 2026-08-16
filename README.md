@@ -13,6 +13,28 @@ A full-stack web application that matches users to jobs using **NLP skill extrac
 | Auth | JWT (python-jose) + bcrypt |
 | Testing | pytest, httpx, FastAPI TestClient |
 
+## Features
+
+- **PDF Resume Parsing**: Upload and extract text seamlessly from PDF resumes using PyMuPDF.
+- **NLP Skill Extraction**: Utilizes spaCy's `PhraseMatcher` to identify technical and soft skills accurately from unstructured resume text.
+- **AI-Powered Recommendations**: Computes matching scores between extracted skills and job requirements using Scikit-Learn's Cosine Similarity.
+- **Secure Authentication**: End-to-end user registration and login flows protected by JWT authentication and bcrypt password hashing.
+- **Interactive Dashboard**: Modern, responsive React frontend powered by Vite and styled with TailwindCSS for optimal user experience.
+
+## Scope
+
+The **Smart Job Recommendation System** is primarily scoped as a Minimum Viable Product (MVP) to bridge the gap between job seekers and relevant opportunities. 
+- **Target Audience**: Students, recent graduates, and professionals looking to map their current skill set to market demands.
+- **Core Focus**: Providing transparent matching based purely on extracted skills rather than biased screening methods.
+- **Future Expansion**: The architecture allows for future integrations with live job board APIs (e.g., LinkedIn, Indeed), advanced LLM-based parsing, and personalized learning paths via course recommendations.
+
+## Limitations
+
+- **Format Constraint**: Resume parsing is strictly limited to standard `.pdf` formats. Highly stylized or image-based PDFs may yield inaccurate text extraction.
+- **Static Dataset**: Currently relies on pre-seeded database entries (`jobs.json`, `skills.json`). It does not dynamically scrape new jobs from the web in real-time.
+- **Vocabulary Bounds**: The NLP extraction relies on a predefined pool of skills. Emerging or highly niche skills might be missed if they are not in the foundational skill dictionary.
+- **Computational Scalability**: Real-time cosine similarity computation across thousands of jobs may face performance bottlenecks without vector database integration (e.g., pgvector) at scale.
+
 ## Project Structure
 
 ```
