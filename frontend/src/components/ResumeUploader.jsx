@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Upload, CheckCircle } from 'lucide-react';
+import { Upload, CheckCircle, Loader2 } from 'lucide-react';
 import { resumesAPI } from '../services/api';
 import { validateResumeFile } from '../utils/file';
 
@@ -9,6 +9,21 @@ export default function ResumeUploader() {
   const [message, setMessage] = useState('');
   const [isDragOver, setIsDragOver] = useState(false);
 
+  const uploadFile = async (selectedFile) => {
+    setFile(selectedFile);
+    setUploading(true);
+    setMessage('');
+    try {
+      await resumesAPI.upload(selectedFile);
+      setMessage('Resume uploaded successfully!');
+    } catch (error) {
+      setMessage('Failed to upload resume.');
+      setFile(null);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files.length > 0) {
       const selectedFile = e.target.files[0];
@@ -17,8 +32,7 @@ export default function ResumeUploader() {
         setMessage(validation.message);
         return;
       }
-      setFile(selectedFile);
-      setMessage('');
+      uploadFile(selectedFile);
     }
   };
 
@@ -42,23 +56,7 @@ export default function ResumeUploader() {
         setMessage(validation.message);
         return;
       }
-      setFile(selectedFile);
-      setMessage('');
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!file) return;
-    setUploading(true);
-    setMessage('');
-    try {
-      await resumesAPI.upload(file);
-      setMessage('Resume uploaded successfully!');
-      setFile(null);
-    } catch (error) {
-      setMessage('Failed to upload resume.');
-    } finally {
-      setUploading(false);
+      uploadFile(selectedFile);
     }
   };
 
@@ -76,15 +74,20 @@ export default function ResumeUploader() {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        {file ? (
-          <div className="text-center">
-            <p className="text-sm font-medium text-slate-800">{file.name}</p>
-            <p className="text-xs text-slate-500 mt-1">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-            <button 
-              onClick={() => setFile(null)} 
-              className="mt-3 text-xs text-red-500 hover:text-red-700 font-medium"
+        {uploading ? (
+          <div className="text-center py-4">
+             <Loader2 className="w-10 h-10 text-indigo-500 animate-spin mx-auto mb-3" />
+             <p className="text-sm font-medium text-slate-700">Uploading {file?.name}...</p>
+          </div>
+        ) : file && message.includes('successfully') ? (
+          <div className="text-center py-4">
+             <CheckCircle className="w-10 h-10 text-emerald-500 mx-auto mb-3" />
+             <p className="text-sm font-medium text-slate-800">{file.name} Uploaded!</p>
+             <button 
+              onClick={() => { setFile(null); setMessage(''); }} 
+              className="mt-3 text-xs text-indigo-600 hover:text-indigo-800 font-medium underline"
             >
-              Remove file
+              Upload a different resume
             </button>
           </div>
         ) : (
@@ -102,20 +105,9 @@ export default function ResumeUploader() {
             </label>
           </div>
         )}
-        
-        {file && (
-          <button 
-            onClick={handleUpload}
-            disabled={uploading}
-            className="mt-6 w-full py-2 bg-indigo-600 text-white rounded-md font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
-          >
-            {uploading ? 'Uploading...' : 'Upload File'}
-          </button>
-        )}
       </div>
-      {message && (
-        <p className={`mt-4 text-center text-sm font-medium flex items-center justify-center ${message.includes('successfully') ? 'text-emerald-600' : 'text-red-600'}`}>
-          {message.includes('successfully') ? <CheckCircle className="w-4 h-4 mr-2" /> : null}
+      {message && !message.includes('successfully') && (
+        <p className="mt-4 text-center text-sm font-medium flex items-center justify-center text-red-600">
           {message}
         </p>
       )}

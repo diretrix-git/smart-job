@@ -1,14 +1,31 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { User, Settings, Shield, History, CheckCircle } from 'lucide-react';
-import api from '../services/api';
+import { User, Settings, Shield, History, CheckCircle, FileText } from 'lucide-react';
+import api, { resumesAPI } from '../services/api';
 
 export default function Profile() {
-  const { user } = useContext(AuthContext);
+  const { user, setUser } = useContext(AuthContext);
   const [username, setUsername] = useState(user?.username || '');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  const [history, setHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const response = await resumesAPI.getHistory();
+        setHistory(response.data);
+      } catch (error) {
+        console.error("Failed to fetch history", error);
+      } finally {
+        setLoadingHistory(false);
+      }
+    };
+    fetchHistory();
+  }, []);
 
   const handleUpdate = async (e) => {
     e.preventDefault();
@@ -26,12 +43,14 @@ export default function Profile() {
         return;
       }
 
-      await api.put('/auth/me', payload);
+      const response = await api.put('/auth/me', payload);
       setMessage('Profile updated successfully!');
       setPassword(''); // clear password field after successful update
       
-      // Need a hard refresh to get new context, or we can just rely on the message.
-      // Ideally we would update the AuthContext state here.
+      // Update global user context immediately
+      if (response.data) {
+        setUser(response.data);
+      }
     } catch (error) {
       setMessage(error.response?.data?.detail || 'Failed to update profile.');
     } finally {
@@ -102,14 +121,36 @@ export default function Profile() {
         </div>
 
         <div className="col-span-1 space-y-8">
-          <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 opacity-60">
+          <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
             <div className="flex items-center space-x-3 mb-6">
               <History className="w-6 h-6 text-amber-500" />
               <h3 className="text-xl font-semibold text-slate-800">Activity History</h3>
             </div>
-            <p className="text-sm text-slate-500">
-              Feature coming soon: View your past resume uploads and recommended job matches.
-            </p>
+            
+            {loadingHistory ? (
+              <p className="text-sm text-slate-500">Loading history...</p>
+            ) : history.length === 0 ? (
+              <p className="text-sm text-slate-500">
+                You haven't uploaded any resumes yet.
+              </p>
+            ) : (
+              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                {history.map((resume) => (
+                  <div key={resume.id} className="p-4 border border-slate-100 bg-slate-50 rounded-lg">
+                    <div className="flex items-center mb-2">
+                      <FileText className="w-4 h-4 text-indigo-500 mr-2" />
+                      <span className="text-sm font-medium text-slate-700">Resume Uploaded</span>
+                    </div>
+                    <p className="text-xs text-slate-400 mb-2">
+                      {new Date(resume.uploaded_at).toLocaleString()}
+                    </p>
+                    <p className="text-xs text-slate-600 line-clamp-3 italic">
+                      "{resume.raw_text}"
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

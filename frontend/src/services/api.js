@@ -41,6 +41,7 @@ export const resumesAPI = {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   },
+  getHistory: () => api.get('/resumes/history'),
 };
 
 export const recommendationsAPI = {
