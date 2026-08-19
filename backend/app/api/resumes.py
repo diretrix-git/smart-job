@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from typing import List
 from sqlalchemy.orm import Session
 from app.api import deps
 from app.models.user import User
@@ -52,3 +53,10 @@ def get_user_skills(
 ):
     skill_names = [skill.name for skill in current_user.skills]
     return {"skills": skill_names}
+
+@router.get("/history", response_model=List[ResumeOut])
+def get_resume_history(
+    current_user: User = Depends(deps.get_current_user),
+):
+    # Sort resumes by uploaded_at descending
+    return sorted(current_user.resumes, key=lambda r: r.uploaded_at, reverse=True)

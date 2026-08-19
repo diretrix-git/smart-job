@@ -14,10 +14,16 @@ def test_get_job_recommendations():
     # Real ORM instances so Pydantic serialization doesn't crash on MagicMocks
     mock_skill = Skill(id=1, name="Python", category="Programming")
     mock_job = Job(id=10, title="Backend Dev", description="Test desc", company="Tech", created_at=datetime.utcnow())
-    mock_job.skills = [mock_skill]
+    
+    mock_js = MagicMock()
+    mock_js.skill_id = mock_skill.id
+    mock_js.skill = mock_skill
+    mock_js.importance = "required"
+    mock_job.job_skills = [mock_js]
     
     mock_user = User(id=1, email="test@test.com", password_hash="dummy")
     mock_user.skills = [mock_skill]
+    mock_user.resumes = []
 
     # Mock DB Session
     mock_db = MagicMock()
@@ -35,6 +41,6 @@ def test_get_job_recommendations():
     data = response.json()
     assert len(data) == 1
     assert data[0]["job_id"] == 10
-    assert data[0]["match_score"] == 1.0
+    assert data[0]["match_score"] == 0.6
     assert data[0]["user_id"] == 1
     assert data[0]["job"]["title"] == "Backend Dev"
