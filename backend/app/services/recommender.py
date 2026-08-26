@@ -99,6 +99,10 @@ def calculate_job_matches(db: Session, current_user: User) -> List[dict]:
         semantic_score = compute_semantic_score(resume_text, job.description)
         final_score = (settings.SKILL_WEIGHT * skill_score) + (settings.SEMANTIC_WEIGHT * semantic_score)
 
+        # Filter out jobs that are essentially noise (e.g. < 15% match)
+        if final_score < 0.15:
+            continue
+
         # Categorize skills
         matched_required = []
         missing_required = []

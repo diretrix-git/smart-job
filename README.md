@@ -15,11 +15,13 @@ A full-stack web application that matches users to jobs using **NLP skill extrac
 
 ## Features
 
-- **PDF Resume Parsing**: Upload and extract text seamlessly from PDF resumes using PyMuPDF.
+- **PDF Resume Parsing & Instant Upload**: Seamless drag-and-drop or file selection for PDF resumes with automatic parsing and text extraction via PyMuPDF.
 - **NLP Skill Extraction**: Utilizes spaCy's `PhraseMatcher` to identify technical and soft skills accurately from unstructured resume text.
-- **AI-Powered Recommendations**: Computes matching scores between extracted skills and job requirements using Scikit-Learn's Cosine Similarity.
-- **Secure Authentication**: End-to-end user registration and login flows protected by JWT authentication and bcrypt password hashing.
-- **Interactive Dashboard**: Modern, responsive React frontend powered by Vite and styled with TailwindCSS for optimal user experience.
+- **Hybrid AI Recommendations**: Combines weighted skill vector cosine similarity with semantic description matching (TF-IDF + Cosine Similarity) and low-score noise filtering (<15%) to rank the most relevant jobs.
+- **Skill Gap Analysis & Course Recommendations**: Identifies matched and missing required/preferred skills for each job and suggests relevant upskilling courses.
+- **Resume History & Activity Tracking**: Keeps track of previous resume uploads with timestamps, raw text summaries, and extracted skills viewable in the Profile view.
+- **Secure Authentication & Profile Management**: End-to-end user registration, login, and profile updates protected by JWT authentication and bcrypt password hashing.
+- **Interactive Dashboard**: Modern, responsive React frontend powered by Vite and styled with TailwindCSS and Lucide icons.
 
 ## Scope
 
@@ -53,9 +55,11 @@ smart-job/
 │   └── requirements.txt
 ├── frontend/
 │   ├── src/
+│   │   ├── components/     # JobRecommendations, ResumeUploader
 │   │   ├── context/        # AuthContext (JWT state management)
 │   │   ├── pages/          # Dashboard, Login, Register, Profile
-│   │   └── services/       # Axios API client
+│   │   ├── services/       # Axios API client
+│   │   └── utils/          # File handling and formatting utilities
 │   ├── package.json
 │   └── vite.config.js
 └── README.md
@@ -244,12 +248,12 @@ To run the complete application, you need **both servers running simultaneously*
 From the `backend/` directory (with the virtual environment activated):
 
 ```bash
-pytest tests/ -v
+python -m pytest tests/ -v
 ```
 
 This runs all 16 unit tests:
-- `test_recommender.py` — Cosine similarity, vector building, missing skills, job matching
-- `test_nlp.py` — PhraseMatcher construction, case-insensitive matching, deduplication
+- `test_recommender.py` — Cosine similarity, vector building, missing skills, job matching, and semantic scoring
+- `test_nlp.py` — PhraseMatcher construction, case-insensitive matching, and deduplication
 - `test_api_integration.py` — Full API endpoint integration test
 
 ---
@@ -274,6 +278,7 @@ This runs all 16 unit tests:
 | PUT | `/api/v1/auth/me` | Update current user profile | Yes |
 | POST | `/api/v1/resumes/upload` | Upload resume PDF for skill extraction | Yes |
 | GET | `/api/v1/resumes/skills` | Get current user's extracted skills | Yes |
+| GET | `/api/v1/resumes/history` | Get user's resume upload and activity history | Yes |
 | GET | `/api/v1/recommendations/jobs` | Get job recommendations with match scores | Yes |
 
 ---
