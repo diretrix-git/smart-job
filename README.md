@@ -1,6 +1,6 @@
 # Smart Job Recommendation System
 
-A full-stack web application that matches users to jobs using **NLP skill extraction** and **cosine similarity**. Users upload their resume as a PDF, the system extracts skills using spaCy, and recommends jobs ranked by how closely the user's skills match each job's requirements.
+A team-built full-stack MVP that parses PDF resumes, matches dictionary-backed skills with spaCy PhraseMatcher, and ranks seeded jobs using weighted skill vectors and sentence embeddings. It returns required/preferred skill gaps and course suggestions. The [source-backed claims ledger](docs/source-backed-claims.md) links the implementation and tests at a pinned revision.
 
 ## Tech Stack
 
@@ -9,25 +9,25 @@ A full-stack web application that matches users to jobs using **NLP skill extrac
 | Frontend | React 18, Vite, TailwindCSS, Axios, React Router |
 | Backend | Python, FastAPI, Uvicorn |
 | Database | PostgreSQL, SQLAlchemy ORM, Alembic |
-| NLP / AI | spaCy (PhraseMatcher), scikit-learn (cosine similarity), PyMuPDF |
+| NLP / AI | spaCy (PhraseMatcher), scikit-learn (cosine similarity), sentence-transformers (all-MiniLM-L6-v2), PyMuPDF |
 | Auth | JWT (python-jose) + bcrypt |
 | Testing | pytest, httpx, FastAPI TestClient |
 
 ## Features
 
 - **PDF Resume Parsing & Instant Upload**: Seamless drag-and-drop or file selection for PDF resumes with automatic parsing and text extraction via PyMuPDF.
-- **NLP Skill Extraction**: Utilizes spaCy's `PhraseMatcher` to identify technical and soft skills accurately from unstructured resume text.
-- **Hybrid AI Recommendations**: Combines weighted skill vector cosine similarity with semantic description matching (TF-IDF + Cosine Similarity) and low-score noise filtering (<15%) to rank the most relevant jobs.
+- **Dictionary Skill Extraction**: Uses case-insensitive spaCy `PhraseMatcher` patterns from database skill names and deduplicates matched skill IDs. Extraction accuracy has not been validated.
+- **Hybrid Recommendations**: Uses binary user skill presence and job weights of 1.0 for required skills and 0.5 for preferred skills. The default score is `0.6 * skill cosine + 0.4 * sentence-embedding cosine`, using `all-MiniLM-L6-v2`; results strictly below `0.15` are excluded, and the rest are sorted by score. These settings are heuristics, not validated recommendation accuracy.
 - **Skill Gap Analysis & Course Recommendations**: Identifies matched and missing required/preferred skills for each job and suggests relevant upskilling courses.
 - **Resume History & Activity Tracking**: Keeps track of previous resume uploads with timestamps, raw text summaries, and extracted skills viewable in the Profile view.
-- **Secure Authentication & Profile Management**: End-to-end user registration, login, and profile updates protected by JWT authentication and bcrypt password hashing.
+- **Authentication & Profile Management**: Implements registration, login and profile updates with JWT authentication and bcrypt password hashing. The checked-in API test mocks authentication and does not validate the complete security flow.
 - **Interactive Dashboard**: Modern, responsive React frontend powered by Vite and styled with TailwindCSS and Lucide icons.
 
 ## Scope
 
 The **Smart Job Recommendation System** is primarily scoped as a Minimum Viable Product (MVP) to bridge the gap between job seekers and relevant opportunities. 
 - **Target Audience**: Students, recent graduates, and professionals looking to map their current skill set to market demands.
-- **Core Focus**: Providing transparent matching based purely on extracted skills rather than biased screening methods.
+- **Core Focus**: Showing skill overlap, missing required/preferred skills and a hybrid similarity score. The score also uses resume and job-description embeddings; it is not a hiring probability, and fairness has not been evaluated.
 - **Future Expansion**: The architecture allows for future integrations with live job board APIs (e.g., LinkedIn, Indeed), advanced LLM-based parsing, and personalized learning paths via course recommendations.
 
 ## Limitations
@@ -35,7 +35,9 @@ The **Smart Job Recommendation System** is primarily scoped as a Minimum Viable 
 - **Format Constraint**: Resume parsing is strictly limited to standard `.pdf` formats. Highly stylized or image-based PDFs may yield inaccurate text extraction.
 - **Static Dataset**: Currently relies on pre-seeded database entries (`jobs.json`, `skills.json`). It does not dynamically scrape new jobs from the web in real-time.
 - **Vocabulary Bounds**: The NLP extraction relies on a predefined pool of skills. Emerging or highly niche skills might be missed if they are not in the foundational skill dictionary.
-- **Computational Scalability**: Real-time cosine similarity computation across thousands of jobs may face performance bottlenecks without vector database integration (e.g., pgvector) at scale.
+- **Model Provisioning and Fallback**: Models initialize at import. Missing spaCy assets can trigger a download, and sentence-transformer initialization failure sets semantic scores to zero without changing the 0.6/0.4 blend. Provision models before use and check startup output.
+- **Upload Budgets**: The upload route checks a lowercase `.pdf` filename suffix and reads the whole file; neither it nor the parser imposes an explicit byte or page budget. Use synthetic PDFs for demonstrations and add resource limits before exposing uploads publicly.
+- **Seed Labels and Evaluation**: The seed script assigns the first `ceil(number of listed skills / 2)` skills as required and the rest as preferred. These labels are placeholders. No labeled ranking benchmark, recommendation-accuracy result or load benchmark is established.
 
 ## Project Structure
 
@@ -156,7 +158,7 @@ DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/smart_job_db
 
 #### 3.6 — Seed the database with sample data
 
-This creates all the tables and loads jobs, skills, and courses from the JSON files:
+This drops and recreates the configured database tables, then loads jobs, skills and courses from JSON. Use a disposable development database; existing table contents are destroyed:
 
 ```bash
 python data/seed.py
@@ -251,10 +253,13 @@ From the `backend/` directory (with the virtual environment activated):
 python -m pytest tests/ -v
 ```
 
-This runs all 16 unit tests:
-- `test_recommender.py` — Cosine similarity, vector building, missing skills, job matching, and semantic scoring
-- `test_nlp.py` — PhraseMatcher construction, case-insensitive matching, and deduplication
-- `test_api_integration.py` — Full API endpoint integration test
+The repository contains 16 test functions across these files. Tests and the application were **NOT RUN** during this documentation review; the command above is the intended execution method, not a pass result. Importing these tests can initialize or download NLP models and requires configuration.
+
+- `test_recommender.py`: cosine similarity, weighted vectors, mocked semantic-score sorting and skill gaps, plus empty-text and real-model semantic checks.
+- `test_nlp.py`: PhraseMatcher construction, case-insensitive and multi-word matching, and deduplication, using the real spaCy model.
+- `test_api_integration.py`: recommendation-route wiring and response assertions with authentication and database dependencies overridden by mocks. It does not verify real authentication, migrations, database persistence or the upload flow.
+
+The real semantic test compares two examples; it does not measure recommendation accuracy on a labeled dataset.
 
 ---
 
